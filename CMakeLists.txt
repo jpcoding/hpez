@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
-project(HPEZ VERSION 0.1.0.0)
+project(QoZ VERSION 2.0.0.0)
 include(GNUInstallDirs)
 include(CTest)
 #set(CMAKE_CXX_STANDARD 17)
