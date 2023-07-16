@@ -1323,8 +1323,8 @@ double Tuning(QoZ::Config &conf, T *data){
         useInterp= (best_interp_cr>=best_lorenzo_ratio) or best_lorenzo_ratio>=80 or best_interp_cr>=80;//orig 0.95*lorenzo_ratio
         if(conf.verbose){
             if (conf.levelwisePredictionSelection<=0){
-                std::cout << "interp best interpAlgo = " << (bestInterpMeta.interpAlgo == 0 ? "LINEAR" : (bestInterpMeta[0].interpAlgo == 1?"CUBIC":"QUAD")) << std::endl;
-                std::cout << "interp best interpParadigm = " << (bestInterpMeta.interpParadigm == 0 ? "1D" : (bestInterpMeta[0].interpParadigm == 1 ? "MD" : "HD") ) << std::endl;
+                std::cout << "interp best interpAlgo = " << (bestInterpMeta.interpAlgo == 0 ? "LINEAR" : (bestInterpMeta.interpAlgo == 1?"CUBIC":"QUAD")) << std::endl;
+                std::cout << "interp best interpParadigm = " << (bestInterpMeta.interpParadigm == 0 ? "1D" : (bestInterpMeta.interpParadigm == 1 ? "MD" : "HD") ) << std::endl;
                 if(bestInterpMeta.interpParadigm!=1)
                     std::cout << "interp best direction = " << (unsigned) bestInterpMeta.interpDirection << std::endl;
                 if(bestInterpMetainterpAlgo!=0){
