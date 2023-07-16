@@ -576,10 +576,11 @@ int main(int argc, char *argv[]) {
             decompress<float>(inPath, cmpPath, decPath, conf, binaryOutput, printCmpResults);
 
         } 
-        /*else if (dataType == SZ_DOUBLE) {
+        else if (dataType == SZ_DOUBLE) {
             decompress<double>(inPath, cmpPath, decPath, conf, binaryOutput, printCmpResults);
 
         } 
+        /*
         else if (dataType == SZ_INT32) {
             decompress<int32_t>(inPath, cmpPath, decPath, conf, binaryOutput, printCmpResults);
         } else if (dataType == SZ_INT64) {
