@@ -1,6 +1,6 @@
 Copyright © 2016 , UChicago Argonne, LLC
 All Rights Reserved
-[QoZ, Version 0.1]
+[HPEZ, Version 0.1]
 
 Sheng Di
 Kai Zhao
