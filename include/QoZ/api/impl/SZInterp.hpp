@@ -1323,11 +1323,11 @@ double Tuning(QoZ::Config &conf, T *data){
         useInterp= (best_interp_cr>=best_lorenzo_ratio) or best_lorenzo_ratio>=80 or best_interp_cr>=80;//orig 0.95*lorenzo_ratio
         if(conf.verbose){
             if (conf.levelwisePredictionSelection<=0){
-                std::cout << "interp best interpAlgo = " << (bestInterpMeta.interpAlgo == 0 ? "LINEAR" : (bestInterpMetas[0].interpAlgo == 1?"CUBIC":"QUAD")) << std::endl;
-                std::cout << "interp best interpParadigm = " << (bestInterpMeta.interpParadigm == 0 ? "1D" : (bestInterpMetas[0].interpParadigm == 1 ? "MD" : "HD") ) << std::endl;
-                if(bestInterpMetas[0].interpParadigm!=1)
+                std::cout << "interp best interpAlgo = " << (bestInterpMeta.interpAlgo == 0 ? "LINEAR" : (bestInterpMeta[0].interpAlgo == 1?"CUBIC":"QUAD")) << std::endl;
+                std::cout << "interp best interpParadigm = " << (bestInterpMeta.interpParadigm == 0 ? "1D" : (bestInterpMeta[0].interpParadigm == 1 ? "MD" : "HD") ) << std::endl;
+                if(bestInterpMeta[0].interpParadigm!=1)
                     std::cout << "interp best direction = " << (unsigned) bestInterpMeta.interpDirection << std::endl;
-                if(bestInterpMetas[0].interpAlgo!=0){
+                if(bestInterpMeta[0].interpAlgo!=0){
                     std::cout << "interp best cubic spline = " << (unsigned) bestInterpMeta.cubicSplineType << std::endl;
                     std::cout << "interp best adj = " << (unsigned) bestInterpMeta.adjInterp << std::endl;
 
@@ -1338,9 +1338,9 @@ double Tuning(QoZ::Config &conf, T *data){
                     std::cout << "Level: " << (unsigned) level<<std::endl;
                     std::cout << "\tinterp best interpAlgo = " << (bestInterpMeta_list[level-1].interpAlgo == 0 ? "LINEAR" : (bestInterpMeta_list[level-1].interpAlgo == 1 ? "CUBIC" : "QUAD")) << std::endl;
                     std::cout << "\tinterp best interpParadigm = " << (bestInterpMeta_list[level-1].interpParadigm == 0 ? "1D" : (bestInterpMeta_list[level-1].interpParadigm == 1 ? "MD" : "HD") ) << std::endl;
-                    if(interpMeta_lists[0][level-1].interpParadigm!=1)
+                    if(bestInterpMeta_list[level-1].interpParadigm!=1)
                         std::cout << "\tinterp best direction = " << (unsigned) bestInterpMeta_list[level-1].interpDirection << std::endl;
-                    if(interpMeta_lists[0][level-1].interpAlgo!=0){
+                    if(bestInterpMeta_list[level-1].interpAlgo!=0){
                         std::cout << "\tinterp best cubic spline = " << (unsigned) bestInterpMeta_list[level-1].cubicSplineType << std::endl;
                         std::cout << "\tinterp best adj = " << (unsigned) bestInterpMeta_list[level-1].adjInterp << std::endl;
 
@@ -1788,7 +1788,7 @@ double Tuning(QoZ::Config &conf, T *data){
         if(conf.verbose){
             printf("Autotuning finished.\n");
             if (useInterp)
-                printf("Interp selected. Selected alpha: %f. Selected beta: %f. Best bitrate: %f. Best %s: %f.\n",bestgamma,bestalpha,bestbeta,bestb, const_cast<char*>(metric_name.c_str()),bestm);
+                printf("Interp selected. Selected alpha: %f. Selected beta: %f. Best bitrate: %f. Best %s: %f.\n",bestalpha,bestbeta,bestb, const_cast<char*>(metric_name.c_str()),bestm);
             else
                 printf("Lorenzo selected. Best bitrate: %f. Best %s: %f.\n",bestb, const_cast<char*>(metric_name.c_str()),bestm);
 
@@ -1866,7 +1866,7 @@ char *SZ_compress_Interp_lorenzo(QoZ::Config &conf, T *data, size_t &outSize) {
     QoZ::Timer timer(true);
     
      
-    best_lorenzo_ratio=Tuning<T,N>(conf,data);
+    double best_lorenzo_ratio=Tuning<T,N>(conf,data);
     
    // char * compress_output;
 
