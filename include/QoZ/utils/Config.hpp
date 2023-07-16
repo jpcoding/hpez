@@ -78,10 +78,10 @@ namespace QoZ {
         template<class ... Dims>
         Config(Dims ... args) {
             dims = std::vector<size_t>{static_cast<size_t>(std::forward<Dims>(args))...};
-            coeffs_dims=dims;
+           
             N = dims.size();
             num = std::accumulate(dims.begin(), dims.end(), (size_t) 1, std::multiplies<size_t>());
-            coeffs_num = num;
+          
             blockSize = (N == 1 ? 128 : (N == 2 ? 16 : 6));
             pred_dim = N;
             stride = blockSize;
@@ -90,10 +90,10 @@ namespace QoZ {
         template<class Iter>
         size_t setDims(Iter begin, Iter end) {
             dims = std::vector<size_t>(begin, end);
-            coeffs_dims=dims;
+           
             N = dims.size();
             num = std::accumulate(dims.begin(), dims.end(), (size_t) 1, std::multiplies<size_t>());
-            coeffs_num = num;
+          
             //added
             blockSize = (N == 1 ? 128 : (N == 2 ? 16 : 6));
             pred_dim = N;
@@ -474,7 +474,7 @@ namespace QoZ {
         int regressiveInterp=0;
         int fullAdjacentInterp=0;
         bool naturalSpline=0;
-        //bool quadInterp=false;
+        bool quadInterp=false;
         //bool fineGrainTuning=false;
         //bool profilingFix=true;//only for test
 

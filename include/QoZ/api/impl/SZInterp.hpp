@@ -107,11 +107,7 @@ double do_not_use_this_interp_compress_block_test(T *data, std::vector<size_t> d
 template<class T, QoZ::uint N>
 inline void init_alphalist(std::vector<double> &alpha_list,const double &rel_bound, QoZ::Config &conf){
 
-    if (use_sperr<T,N>(conf))
-    {
-        alpha_list={1};
-        return;
-    }
+    
     /*
     if(conf.linearReduce){
         alpha_list={0,0.1,0.2,0.3,0.4,0.5};
@@ -138,11 +134,7 @@ inline void init_alphalist(std::vector<double> &alpha_list,const double &rel_bou
 }
 template<class T, QoZ::uint N>
 inline void init_betalist(std::vector<double> &beta_list,const double &rel_bound, QoZ::Config &conf){
-    if (use_sperr<T,N>(conf))
-    {
-        beta_list={1};
-        return;
-    }
+   
     /*
     if(conf.linearReduce){
         beta_list={1,0.75,0.5,0.33,0.25};
@@ -460,10 +452,7 @@ std::pair<double,double> CompressTest(const QoZ::Config &conf,const std::vector<
     if(tuningTarget==QoZ::TUNING_TARGET_RD){
         double mse=square_error/ele_num;
         mse*=profiling_coeff;      
-        if(testConfig.wavelet==1)
-            mse*=testConfig.waveletMseFix;
-        else if(testConfig.wavelet>1)
-            mse*=testConfig.waveletMseFix2;
+        
         metric=QoZ::PSNR(testConfig.rng,mse);
     }
     else if (tuningTarget==QoZ::TUNING_TARGET_AC){                       
@@ -739,7 +728,7 @@ double Tuning(QoZ::Config &conf, T *data){
     }
 
     std::vector<std::vector<size_t> >starts;
-    if((conf.waveletTuningRate>0 or conf.autoTuningRate>0 or conf.predictorTuningRate>0) and conf.profiling){      
+    if((conf.autoTuningRate>0 or conf.predictorTuningRate>0) and conf.profiling){      
         conf.profStride=conf.sampleBlockSize/4;
         if(N==2){
             QoZ::profiling_block_2d<T,N>(data,conf.dims,starts,sampleBlockSize,conf.absErrorBound,conf.profStride);
@@ -1334,26 +1323,26 @@ double Tuning(QoZ::Config &conf, T *data){
         useInterp= (best_interp_cr>=best_lorenzo_ratio) or best_lorenzo_ratio>=80 or best_interp_cr>=80;//orig 0.95*lorenzo_ratio
         if(conf.verbose){
             if (conf.levelwisePredictionSelection<=0){
-                std::cout << "interp best interpAlgo = " << (bestInterpMetas[0].interpAlgo == 0 ? "LINEAR" : (bestInterpMetas[0].interpAlgo == 1?"CUBIC":"QUAD")) << std::endl;
-                std::cout << "interp best interpParadigm = " << (bestInterpMetas[0].interpParadigm == 0 ? "1D" : (bestInterpMetas[0].interpParadigm == 1 ? "MD" : "HD") ) << std::endl;
+                std::cout << "interp best interpAlgo = " << (bestInterpMeta.interpAlgo == 0 ? "LINEAR" : (bestInterpMetas[0].interpAlgo == 1?"CUBIC":"QUAD")) << std::endl;
+                std::cout << "interp best interpParadigm = " << (bestInterpMeta.interpParadigm == 0 ? "1D" : (bestInterpMetas[0].interpParadigm == 1 ? "MD" : "HD") ) << std::endl;
                 if(bestInterpMetas[0].interpParadigm!=1)
-                    std::cout << "interp best direction = " << (unsigned) bestInterpMetas[0].interpDirection << std::endl;
+                    std::cout << "interp best direction = " << (unsigned) bestInterpMeta.interpDirection << std::endl;
                 if(bestInterpMetas[0].interpAlgo!=0){
-                    std::cout << "interp best cubic spline = " << (unsigned) bestInterpMetas[0].cubicSplineType << std::endl;
-                    std::cout << "interp best adj = " << (unsigned) bestInterpMetas[0].adjInterp << std::endl;
+                    std::cout << "interp best cubic spline = " << (unsigned) bestInterpMeta.cubicSplineType << std::endl;
+                    std::cout << "interp best adj = " << (unsigned) bestInterpMeta.adjInterp << std::endl;
 
                 }
             }
             else{
                 for(int level=conf.levelwisePredictionSelection;level>0;level--){
                     std::cout << "Level: " << (unsigned) level<<std::endl;
-                    std::cout << "\tinterp best interpAlgo = " << (interpMeta_lists[0][level-1].interpAlgo == 0 ? "LINEAR" : (interpMeta_lists[0][level-1].interpAlgo == 1 ? "CUBIC" : "QUAD")) << std::endl;
-                    std::cout << "\tinterp best interpParadigm = " << (interpMeta_lists[0][level-1].interpParadigm == 0 ? "1D" : (interpMeta_lists[0][level-1].interpParadigm == 1 ? "MD" : "HD") ) << std::endl;
+                    std::cout << "\tinterp best interpAlgo = " << (bestInterpMeta_list[level-1].interpAlgo == 0 ? "LINEAR" : (bestInterpMeta_list[level-1].interpAlgo == 1 ? "CUBIC" : "QUAD")) << std::endl;
+                    std::cout << "\tinterp best interpParadigm = " << (bestInterpMeta_list[level-1].interpParadigm == 0 ? "1D" : (bestInterpMeta_list[level-1].interpParadigm == 1 ? "MD" : "HD") ) << std::endl;
                     if(interpMeta_lists[0][level-1].interpParadigm!=1)
-                        std::cout << "\tinterp best direction = " << (unsigned) interpMeta_lists[0][level-1].interpDirection << std::endl;
+                        std::cout << "\tinterp best direction = " << (unsigned) bestInterpMeta_list[level-1].interpDirection << std::endl;
                     if(interpMeta_lists[0][level-1].interpAlgo!=0){
-                        std::cout << "\tinterp best cubic spline = " << (unsigned) interpMeta_lists[0][level-1].cubicSplineType << std::endl;
-                        std::cout << "\tinterp best adj = " << (unsigned) interpMeta_lists[0][level-1].adjInterp << std::endl;
+                        std::cout << "\tinterp best cubic spline = " << (unsigned) bestInterpMeta_list[level-1].cubicSplineType << std::endl;
+                        std::cout << "\tinterp best adj = " << (unsigned) bestInterpMeta_list[level-1].adjInterp << std::endl;
 
                     }
                 }
@@ -1757,14 +1746,12 @@ double Tuning(QoZ::Config &conf, T *data){
                 double bitrate_r=results.first;
                 double metric_r=results.second;
                 double a=(metric-metric_r)/(bitrate-bitrate_r);
-                if(a<=0)
-                    continue;
                 double b=metric-a*bitrate;
                 double reg=a*bestb+b;
                        // printf("%.4f %.2f\n",bitrate_r,metric_r);
                       // printf("%.4f %.2f\n",bestb,reg);
                         //conf.absErrorBound=orig_eb;
-                if (reg>bestm){
+                if (a>0 and reg>bestm){
                            // bestalpha=alpha;
                             //bestbeta=beta; 
                     bestb=bitrate;

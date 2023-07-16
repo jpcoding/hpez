@@ -172,10 +172,8 @@ void SZ_decompress( QoZ::Config &config, char *cmpData, size_t cmpSize, T *&decD
     //timer.start();
     //std::cout<<"woshiniba"<<std::endl;
     if (decData == nullptr) {
-        if(conf.wavelet>1)
-            decData = new T[conf.coeffs_num];
-        else
-            decData = new T[conf.num];
+        
+        decData = new T[conf.num];
     }
     
     //timer.stop("alloc memory");
