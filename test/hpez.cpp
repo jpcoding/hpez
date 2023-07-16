@@ -1,7 +1,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
-#include "QoZ/api/sz.hpp"
+#include "../include/QoZ/api/sz.hpp"
 
 #define SZ_FLOAT 0
 #define SZ_DOUBLE 1
