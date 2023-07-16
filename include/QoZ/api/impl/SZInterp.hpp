@@ -1327,7 +1327,7 @@ double Tuning(QoZ::Config &conf, T *data){
                 std::cout << "interp best interpParadigm = " << (bestInterpMeta.interpParadigm == 0 ? "1D" : (bestInterpMeta.interpParadigm == 1 ? "MD" : "HD") ) << std::endl;
                 if(bestInterpMeta.interpParadigm!=1)
                     std::cout << "interp best direction = " << (unsigned) bestInterpMeta.interpDirection << std::endl;
-                if(bestInterpMetainterpAlgo!=0){
+                if(bestInterpMeta.interpAlgo!=0){
                     std::cout << "interp best cubic spline = " << (unsigned) bestInterpMeta.cubicSplineType << std::endl;
                     std::cout << "interp best adj = " << (unsigned) bestInterpMeta.adjInterp << std::endl;
 
