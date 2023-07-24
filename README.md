@@ -28,11 +28,11 @@ Before you proceed to the following evaluations, please add the installation pat
 ## Single compression/decompression testing Examples
 
 You can use the executable 'hpez' command to do the compression/decompression (the input data should be float or double binary files). Just run "hpez" command without any argument to check the instructions for its arguments.
-The hpez executable includes the SZ3.1 compression, QoZ 1.1 compression, and 3 optimization levels of HPEZ compression. In the command:
+For the convenience of tests, the hpez executable includes the SZ3.1 compression, QoZ 1.1 compression, and 3 optimization levels of HPEZ compression. In the command:
 * Not containing -q argument or -q 0: SZ3.1 compression.
 * Containing -q 1: QoZ 1.1 compression.
 * Containing -q 4: Full HPEZ compression (for the results reported in the paper).
-* Containing -q 2 or -q 3: 2 intermediate optimization levels of HPEZ compression (having faster speeds but worse rate-distortion).
+* Containing -q 2 or -q 3: 2 intermediate optimization levels of HPEZ compression (having faster speeds but slightly worse rate-distortion).
 
 ## Dataset Source 
 

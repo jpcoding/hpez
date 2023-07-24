@@ -549,7 +549,7 @@ namespace QoZ {
                         std::vector<uint8_t> interpParadigm_Candidates={0};
                         //std::vector<uint8_t> cubicSplineType_Candidates={0};
                         std::vector<uint8_t> cubicSplineType_Candidates={cur_level_meta.cubicSplineType};
-                        std::vector<uint8_t> interpDirection_Candidates={0, QoZ::factorial(N) -1};
+                        std::vector<uint8_t> interpDirection_Candidates={0, (uint8_t)(QoZ::factorial(N) -1)};
                         //if(N==3)
                         //   interpDirection_Candidates={0,1,2,3,4,5};
                         if(conf.frozen_dim>=0){
@@ -907,9 +907,9 @@ namespace QoZ {
             for (int i = N - 2; i >= 0; i--) {
                 dimension_offsets[i] = dimension_offsets[i + 1] * global_dimensions[i + 1];
             }
-            dimension_sequences = std::vector<std::array<int, N>>();
-            auto sequence = std::array<int, N>();
-            for (int i = 0; i < N; i++) {
+            dimension_sequences = std::vector<std::array<size_t, N>>();
+            auto sequence = std::array<size_t, N>();
+            for (size_t i = 0; i < N; i++) {
                 sequence[i] = i;
             }
             do {
@@ -8150,7 +8150,7 @@ namespace QoZ {
             uint8_t direction=meta.interpDirection;
             assert(direction<2);
             if(paradigm==0){
-                const std::array<int, N> dims = dimension_sequences[direction];
+                const std::array<size_t, N> dims = dimension_sequences[direction];
                 
                 
                 //if(!regressive){
@@ -8252,7 +8252,7 @@ namespace QoZ {
             }
             
             else{// if(paradigm<3){//md or hd
-                const std::array<int, N> dims = dimension_sequences[0];
+                const std::array<size_t, N> dims = dimension_sequences[0];
                 std::array<float,2>dim_coeffs={meta.dimCoeffs[0],meta.dimCoeffs[1]};
 
                 std::array<size_t, N>steps;
@@ -8282,7 +8282,7 @@ namespace QoZ {
                 begin_idx=begin,end_idx=end;
                 
                 predict_error += block_interpolation_2d_crossblock(data, begin_idx,
-                                                            end_idx,std::array<size_t,2>{dims[0],dims[1]},
+                                                            end_idx,dims,
                                                             stride , interp_func, pb,dim_coeffs,meta,cross_block,tuning);
 
                  
@@ -8387,7 +8387,7 @@ namespace QoZ {
             }
             assert(direction<6);
             if(paradigm==0){
-                const std::array<int, N> dims = dimension_sequences[direction];
+                const std::array<size_t, N> dims = dimension_sequences[direction];
                 //if (cross_block==0){
                 if(!fallback_2d){
                     //if(!regressive){
@@ -8687,7 +8687,7 @@ namespace QoZ {
             else {//if (paradigm==1){
                 std::array<float,3>dim_coeffs=meta.dimCoeffs;
                 if(!fallback_2d){
-                    const std::array<int, N> dims = dimension_sequences[0];
+                    const std::array<size_t, N> dims = dimension_sequences[0];
                     /*if(!cross_block){
                         
                         //std::cout<<dim_coeffs[0]<<std::endl;
@@ -8930,14 +8930,14 @@ namespace QoZ {
                        //std::cout<<"2d3 fin"<<std::endl;
                         begin_idx=begin,end_idx=end;
                         predict_error += block_interpolation_3d_crossblock(data, begin_idx,
-                                                                    end_idx,std::array<size_t,3>{dims[0],dims[1],dims[2]},
+                                                                    end_idx,dims,
                                                                     stride , interp_func, pb,dim_coeffs,meta,cross_block,tuning);
                                                                     
 
                    // }
                 }
                 else{
-                    const std::array<int, N> dims = dimension_sequences[direction];
+                    const std::array<size_t, N> dims = dimension_sequences[direction];
                     //there should better be a line to swap dims[1] and dims[2] when dims[1]>dims[2]. Currently controlled in the tuning step.
                     /*
                     if(!cross_block){
@@ -9211,7 +9211,7 @@ namespace QoZ {
             uint8_t direction=meta.interpDirection;
             assert(direction<24);
             //max_error = 0;
-            const std::array<int, N> dims = dimension_sequences[direction];
+            const std::array<size_t, N> dims = dimension_sequences[direction];
             for (size_t j = (begin[dims[1]] ? begin[dims[1]] + stride2x : 0); j <= end[dims[1]]; j += stride2x) {
                 for (size_t k = (begin[dims[2]] ? begin[dims[2]] + stride2x : 0); k <= end[dims[2]]; k += stride2x) {
                     for (size_t t = (begin[dims[3]] ? begin[dims[3]] + stride2x : 0);
@@ -9314,7 +9314,7 @@ namespace QoZ {
 
         std::array<size_t, N> global_dimensions;
         std::array<size_t, N> dimension_offsets;
-        std::vector<std::array<int, N>> dimension_sequences;
+        std::vector<std::array<size_t, N>> dimension_sequences;
         
 
         std::vector<float> prediction_errors;//for test, to delete in final version. The float time is to match the vector in config.

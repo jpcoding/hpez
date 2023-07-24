@@ -851,7 +851,7 @@ double Tuning(QoZ::Config &conf, T *data){
         //std::vector<int> interpAlgo_Candidates={QoZ::INTERP_ALGO_CUBIC};//temp. 
         std::vector<uint8_t> interpParadigm_Candidates={0};//
         std::vector<uint8_t> cubicSplineType_Candidates={0};
-        std::vector<uint8_t> interpDirection_Candidates={0, QoZ::factorial(N) -1};
+        std::vector<uint8_t> interpDirection_Candidates={0, (uint8_t)(QoZ::factorial(N) -1)};
         /*
         if(N>2)
             interpDirection_Candidates={0,1, 2,3,4,QoZ::factorial(N) -1};
