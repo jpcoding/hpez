@@ -27,14 +27,6 @@
 #include <cstdlib>
 
 
-
-
-
-
-
-
-
-
 template<class T, QoZ::uint N>
 char *SZ_compress_Interp(QoZ::Config &conf, T *data, size_t &outSize) {
 
@@ -610,7 +602,7 @@ double Tuning(QoZ::Config &conf, T *data){
         if (conf.maxStep<=0)
             conf.maxStep = (N==2?64:32);
         if (conf.levelwisePredictionSelection<=0)
-            conf.levelwisePredictionSelection = (N==2?6:4);
+            conf.levelwisePredictionSelection = (N==2?5:4);
         if (conf.sampleBlockSize<=0){
             
             conf.sampleBlockSize = (N==2?64:32);
@@ -700,7 +692,7 @@ double Tuning(QoZ::Config &conf, T *data){
 
     
     
-    size_t minimum_sbs=16;
+    size_t minimum_sbs=8;
     if (conf.sampleBlockSize<minimum_sbs)
         conf.sampleBlockSize=minimum_sbs;
 
@@ -713,6 +705,17 @@ double Tuning(QoZ::Config &conf, T *data){
 
     while(conf.autoTuningRate>0 and conf.sampleBlockSize>=2*minimum_sbs and (pow(conf.sampleBlockSize+1,N)/(double)conf.num)>1.5*conf.autoTuningRate)
         conf.sampleBlockSize/=2;
+
+    if (conf.sampleBlockSize<8){
+        conf.predictorTuningRate=0.0;
+        conf.autoTuningRate=0.0;
+    }
+    else{
+        int max_lps_level=(uint)log2(conf.sampleBlockSize);//to be catious: the max_interp_level is different from the ones in szinterpcompressor, which includes the level of anchor grid.
+
+        if (conf.levelwisePredictionSelection>max_lps_level)
+            conf.levelwisePredictionSelection=max_lps_level;
+    }
 
     std::vector< std::vector<T> > sampled_blocks;
     size_t sampleBlockSize=conf.sampleBlockSize;
@@ -1812,6 +1815,13 @@ double Tuning(QoZ::Config &conf, T *data){
                 conf.interpMeta=bestInterpMetas[bestWave];
             }
         }*/
+    }
+    else if(useInterp and conf.QoZ){
+        std::pair<double,double> ab=setABwithRelBound(rel_bound,2);
+        conf.alpha=ab.first;
+        conf.beta=ab.second;
+
+
     }
     conf.blockwiseTuning=blockwiseTuning;
     if (useInterp){
