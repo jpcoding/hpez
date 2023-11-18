@@ -706,7 +706,7 @@ double Tuning(QoZ::Config &conf, T *data){
     while(conf.autoTuningRate>0 and conf.sampleBlockSize>=2*minimum_sbs and (pow(conf.sampleBlockSize+1,N)/(double)conf.num)>1.5*conf.autoTuningRate)
         conf.sampleBlockSize/=2;
 
-    if (conf.sampleBlockSize<8){
+    if (conf.sampleBlockSize<minimum_sbs){
         conf.predictorTuningRate=0.0;
         conf.autoTuningRate=0.0;
     }
