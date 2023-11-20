@@ -937,7 +937,17 @@ namespace QoZ {
 
             }
             */
-            if (N==2){
+            if (N==1){
+                for (size_t x=maxStep*(tuning==1);x<conf.dims[0];x+=maxStep){
+
+                    quantizer.insert_unpred(*(data+x));
+                    quant_inds.push_back(0);
+                       
+                    
+                }
+            }
+
+            else if (N==2){
                 for (size_t x=maxStep*(tuning==1);x<conf.dims[0];x+=maxStep){
                     for (size_t y=maxStep*(tuning==1);y<conf.dims[1];y+=maxStep){
 
@@ -978,11 +988,39 @@ namespace QoZ {
                     }
                 }
             }
+            else if(N==4){
+
+                std::array<size_t,4>anchor_strides={maxStep,maxStep,maxStep,maxStep};
+
+                int fd=conf.frozen_dim;
+                if(fd>=0)
+                    anchor_strides[fd]=1;
+                
+
+                
+                for (size_t x=anchor_strides[0]*(tuning==1);x<conf.dims[0];x+=anchor_strides[0]){
+                    for (size_t y=anchor_strides[1]*(tuning==1);y<conf.dims[1];y+=anchor_strides[1]){
+                        for(size_t z=anchor_strides[2]*(tuning==1);z<conf.dims[2];z+=anchor_strides[2]){
+                            for(size_t w=anchor_strides[3]*(tuning==1);z<conf.dims[3];z+=anchor_strides[3]){
+                                quantizer.insert_unpred(*(data+x*dimension_offsets[0]+y*dimension_offsets[1]+z*dimension_offsets[2]+w) );
+                                quant_inds.push_back(0);
+                            }
+                        }           
+                    }
+                }
+            }
+
         }
  
         void recover_grid(T *decData,const std::array<size_t,N>& global_dimensions,size_t maxStep,size_t frozen_dim=-1){
             assert(maxStep>0);
-            if (N==2){
+            if (N==){
+                for (size_t x=0;x<global_dimensions[0];x+=maxStep){
+                    decData[x]=quantizer.recover_unpred();
+                    quant_index++;
+                }
+            }
+            else if (N==2){
                 for (size_t x=0;x<global_dimensions[0];x+=maxStep){
                     for (size_t y=0;y<global_dimensions[1];y+=maxStep){
                         decData[x*dimension_offsets[0]+y]=quantizer.recover_unpred();
@@ -1000,6 +1038,22 @@ namespace QoZ {
                             decData[x*dimension_offsets[0]+y*dimension_offsets[1]+z]=quantizer.recover_unpred();
                             //mark[x*global_dimensions[1]*global_dimensions[2]+y*global_dimensions[2]+z]=true;
                             quant_index++;
+                        }    
+                    }
+                }
+
+            }
+            else if(N==4){
+                std::array<size_t,4>anchor_strides={maxStep,maxStep,maxStep,maxStep};
+                if(frozen_dim>=0)
+                    anchor_strides[frozen_dim]=1;
+                for (size_t x=0;x<global_dimensions[0];x+=anchor_strides[0]){
+                    for (size_t y=0;y<global_dimensions[1];y+=anchor_strides[1]){
+                        for(size_t z=0;z<global_dimensions[2];z+=anchor_strides[2]){
+                            for(size_t w=0;w<global_dimensions[3];z+=anchor_strides[3]){
+                                decData[x*dimension_offsets[0]+y*dimension_offsets[1]+z*dimension_offsets[2]+w]=quantizer.recover_unpred();
+                                quant_index++;
+                            }
                         }    
                     }
                 }
