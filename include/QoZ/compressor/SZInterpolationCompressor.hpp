@@ -1014,7 +1014,7 @@ namespace QoZ {
  
         void recover_grid(T *decData,const std::array<size_t,N>& global_dimensions,size_t maxStep,size_t frozen_dim=-1){
             assert(maxStep>0);
-            if (N==){
+            if (N==1){
                 for (size_t x=0;x<global_dimensions[0];x+=maxStep){
                     decData[x]=quantizer.recover_unpred();
                     quant_index++;
