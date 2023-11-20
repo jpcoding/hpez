@@ -234,7 +234,7 @@ int main(int argc, char *argv[]) {
     int sampleBlockSize=0;
 
     bool sz2mode = false;
-    int qoz=0;
+    int qoz=-1;
     bool testLorenzo=false;
 
     size_t r4 = 0;
