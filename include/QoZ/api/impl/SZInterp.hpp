@@ -626,7 +626,19 @@ double Tuning(QoZ::Config &conf, T *data){
                 conf.blockwiseSampleRate=3.0;
         }
     }   
-    //Add conf.FZ
+    //Deactivate several features when dim not fit
+    if(N!=2 and N!=3){
+       // conf.QoZ=0; comment it for level-wise eb
+        conf.autoTuningRate=0;
+        conf.predictorTuningRate=0;
+        conf.levelwisePredictionSelection=0;
+        conf.multiDimInterp=0;
+        conf.naturalSpline=0;
+        conf.fullAdjacentInterp=0;
+        conf.freezeDimTest=0;
+        conf.dynamicDimCoeff=0;
+        conf.blockwiseTuning=0;
+    }
     
 
     if(conf.multiDimInterp==0)
