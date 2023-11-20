@@ -1001,7 +1001,7 @@ namespace QoZ {
                 for (size_t x=anchor_strides[0]*(tuning==1);x<conf.dims[0];x+=anchor_strides[0]){
                     for (size_t y=anchor_strides[1]*(tuning==1);y<conf.dims[1];y+=anchor_strides[1]){
                         for(size_t z=anchor_strides[2]*(tuning==1);z<conf.dims[2];z+=anchor_strides[2]){
-                            for(size_t w=anchor_strides[3]*(tuning==1);z<conf.dims[3];z+=anchor_strides[3]){
+                            for(size_t w=anchor_strides[3]*(tuning==1);w<conf.dims[3];w+=anchor_strides[3]){
                                 quantizer.insert_unpred(*(data+x*dimension_offsets[0]+y*dimension_offsets[1]+z*dimension_offsets[2]+w) );
                                 quant_inds.push_back(0);
                             }
@@ -1050,7 +1050,7 @@ namespace QoZ {
                 for (size_t x=0;x<global_dimensions[0];x+=anchor_strides[0]){
                     for (size_t y=0;y<global_dimensions[1];y+=anchor_strides[1]){
                         for(size_t z=0;z<global_dimensions[2];z+=anchor_strides[2]){
-                            for(size_t w=0;w<global_dimensions[3];z+=anchor_strides[3]){
+                            for(size_t w=0;w<global_dimensions[3];w+=anchor_strides[3]){
                                 decData[x*dimension_offsets[0]+y*dimension_offsets[1]+z*dimension_offsets[2]+w]=quantizer.recover_unpred();
                                 quant_index++;
                             }
