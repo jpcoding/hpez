@@ -601,7 +601,7 @@ double Tuning(QoZ::Config &conf, T *data){
             conf.predictorTuningRate = (N<=2?0.01:0.005);
         if (conf.maxStep<=0){
             std::array<size_t,4> anchor_strides={256,64,32,16};
-            conf.maxStep = anchor_strides[N];
+            conf.maxStep = anchor_strides[N-1];
         }
         if (conf.levelwisePredictionSelection<=0)
             conf.levelwisePredictionSelection = (N<=2?5:4);
