@@ -6,14 +6,14 @@ This is the source code of the HPEZ compressor introduced in the paper: High-per
 
 ## Dependencies
 
-Please Install the following dependencies before running the artiact evaluation experiments:
+Please Install the following dependencies before running the artifact evaluation experiments:
 
 * cmake>=3.13
 * gcc>=6.0
 
 ## 3rd party libraries/tools
 
-* Zstd >= 1.3.5 (https://facebook.github.io/zstd/). Not mandatory to be mannually installed as Zstandard v1.4.5 is included and will be used if libzstd can not be found by pkg-config.
+* Zstd >= 1.3.5 (https://facebook.github.io/zstd/). Not mandatory to be manually installed as Zstandard v1.4.5 is included and will be used if libzstd can not be found by pkg-config.
 
 ## Installation
 
