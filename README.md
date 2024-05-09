@@ -29,9 +29,9 @@ Before you proceed to the following evaluations, please add the installation pat
 
 You can use the executable 'hpez' command to do the compression/decompression (the input data should be float or double binary files). Just run "hpez" command without any argument to check the instructions for its arguments.
 For the convenience of tests, the hpez executable includes the SZ3.1 compression, QoZ 1.1 compression, and 3 optimization levels of HPEZ compression. In the command:
-* Not containing -q argument or -q 0: SZ3.1 compression.
+* -q 0: SZ3.1 compression.
 * Containing -q 1: QoZ 1.1 compression.
-* Containing -q 4: Full HPEZ compression (for the results reported in the paper).
+* Not containing -q argument or containing -q 4: Full HPEZ compression (for the results reported in the paper).
 * Containing -q 2 or -q 3: 2 intermediate optimization levels of HPEZ compression (having faster speeds but slightly worse rate-distortion).
 
 Notice: the intergrated SZ3.1 and QoZ 1.1 in HPEZ has already leveraged the Fast-varying-first interpolation (proposed in our paper), therefore their compression ratios are sometimes higher than the original public released versions of SZ3.1 and QoZ 1.1.
