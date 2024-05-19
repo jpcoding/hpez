@@ -577,7 +577,7 @@ int main(int argc, char *argv[]) {
 
         } 
         else if (dataType == SZ_DOUBLE) {
-            decompress<double>(inPath, cmpPath, decPath, conf, binaryOutput, printCmpResults);
+            // decompress<double>(inPath, cmpPath, decPath, conf, binaryOutput, printCmpResults);
 
         } 
         /*

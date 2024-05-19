@@ -8,6 +8,7 @@
 #include "QoZ/def.hpp"
 #include "MemoryUtil.hpp"
 #include "QoZ/utils/inih/INIReader.h"
+#include <memory>
 namespace QoZ {
 
 
@@ -480,6 +481,13 @@ namespace QoZ {
 
        // double anchorThreshold=0.0;
        // size_t minAnchorLevel=3;
+
+        struct PASS_DATA{
+        // std::unique_ptr<void> processed_data_prt;
+        std::shared_ptr<void> processed_data_prt;
+        const void* original_data_prt;
+        std::shared_ptr<std::vector<int>> aux_quant_inds_ptr;
+        } PASS_DATA;
 
 
         
