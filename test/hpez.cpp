@@ -21,7 +21,7 @@
 void usage() {
     printf("Note: HPEZ command line arguments are backward compatible with SZ2/3, \n");
     //printf("      use -h2 to show the supported SZ2 command line arguments. \n");
-    printf("Usage: qoz <options>\n");
+    printf("Usage: hpez <options>\n");
     printf("Options:\n");
     printf("* general options:\n");
     printf("	-h: print the help information\n");
