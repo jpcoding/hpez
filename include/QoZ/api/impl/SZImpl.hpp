@@ -5,6 +5,7 @@
 #include "QoZ/api/impl/SZDispatcher.hpp"
 #include "QoZ/api/impl/SZImplOMP.hpp"
 #include <cmath>
+#include <memory>
 
 
 template<class T, QoZ::uint N>
@@ -15,11 +16,13 @@ char *SZ_compress_impl(QoZ::Config &conf, const T *data, size_t &outSize) {
     if (conf.openmp) {
         return SZ_compress_OMP<T, N>(conf, data, outSize);
     } else {
-        std::vector<T> dataCopy(data, data + conf.num);
+        // std::vector<T> dataCopy(data, data + conf.num);
+        auto data_copy = std::make_shared<std::vector<T>>();
+        data_copy->assign(data, data + conf.num);
         //std::cout<<"implstart"<<std::endl;
-        auto output=SZ_compress_dispatcher<T, N>(conf, dataCopy.data(), outSize);
+        auto output=SZ_compress_dispatcher<T, N>(conf, data_copy->data(), outSize);
         //std::cout<<"implend"<<std::endl;
-       
+        conf.PASS_DATA.processed_data_prt = std::static_pointer_cast<void>(data_copy);  
         return output;
     }
 }

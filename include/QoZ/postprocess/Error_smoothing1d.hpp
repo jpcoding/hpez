@@ -1,5 +1,5 @@
-#ifndef SZ3_ERROR_SMOOTHING_1D
-#define SZ3_ERROR_SMOOTHING_1D
+#ifndef QoZ_ERROR_SMOOTHING_1D
+#define QoZ_ERROR_SMOOTHING_1D
 
 #include <algorithm>
 #include <array>
@@ -13,11 +13,11 @@
 #include <random>
 #include <vector>
 #include <array>
-#include "SZ3/quantizer/Quantizer.hpp"
-#include "SZ3/postprocess/Posterization.hpp"
-#include "SZ3/utils/FileUtil.hpp"
+#include "QoZ/quantizer/Quantizer.hpp"
+#include "QoZ/postprocess/Posterization.hpp"
+#include "QoZ/utils/FileUtil.hpp"
 
-namespace SZ {
+namespace QoZ {
 
 // function to compensate a line of data
 // data: the data to be compensated
@@ -464,8 +464,8 @@ int compensation_3d(T*data, int* quant_inds,
 {
 
 
-      size_t plane_dim0 = (end[dims[plane_dir0]] - begin[dims[plane_dir0]]) / plane_dir0_stride + 1; // stride = plane dim1
-      size_t plane_dim1 = (end[dims[plane_dir1]] - begin[dims[plane_dir1]]) / plane_dir1_stride + 1; // stride = 1
+      size_t plane_dim0 = (end[dims[plane_dir0]] - begin[dims[plane_dir0]]) / plane_dir0_stride ; // stride = plane dim1
+      size_t plane_dim1 = (end[dims[plane_dir1]] - begin[dims[plane_dir1]]) / plane_dir1_stride ; // stride = 1
       std::vector<T> plane_data(plane_dim1 * plane_dim0, 0);
       std::vector<T> plane_data_dirction2(plane_dim1 * plane_dim0, 0);
       std::vector<T> compensation_line_dir0(plane_dim1, 0);
@@ -615,11 +615,11 @@ int compensation_3d(T*data, int* quant_inds,
 }
 
 
-}  // namespace SZ3
+}  // namespace QoZ
 
 
 
-#endif  // SZ3_POSTPROCESS
+#endif  // QoZ_POSTPROCESS
 
 
 

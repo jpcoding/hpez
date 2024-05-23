@@ -10,7 +10,7 @@
 #include <numeric>
 #include <vector>
 
-namespace SZ {
+namespace QoZ {
 template <typename T>
 class Compensate2D {
  public:

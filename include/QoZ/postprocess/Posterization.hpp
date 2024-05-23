@@ -2,14 +2,14 @@
 #define SZ_POSTERIZATION_HPP
 
 #include "DisjointSet.hpp"
-#include "SZ3/utils/FileUtil.hpp"
-#include "SZ3/utils/Timer.hpp"
+#include "QoZ/utils/FileUtil.hpp"
+#include "QoZ/utils/Timer.hpp"
 #include <iostream>
 #include <vector>
 
 
 
-namespace SZ {
+namespace QoZ {
 template <class T> 
 class Posterization {
 
@@ -243,7 +243,7 @@ private:
     int w = global_dimensions[2]; // the last dimension is the fastest changing dimension
 
 
-    SZ::Timer timer;
+    QoZ::Timer timer;
     timer.start();
     for (int k = 0; k < d; k++) {
       for (int i = 0; i < h; i++) {

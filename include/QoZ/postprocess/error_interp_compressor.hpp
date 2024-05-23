@@ -11,30 +11,29 @@
 #include <memory>
 #include <random>
 #include <vector>
-#include "SZ3/utils/Statistic.hpp"
+#include "QoZ/utils/Statistic.hpp"
 
-#include "SZ3/compressor/SZInterpCompressorHelp.hpp"
-// #include "SZ3/compressor/SZInterpolation_postprocess.hpp"
-#include "SZ3/postprocess/compensate_2d.hpp"
-#include "SZ3/postprocess/post_compensate_zero_quant.hpp"
-#include "SZ3/def.hpp"
-#include "SZ3/encoder/Encoder.hpp"
-#include "SZ3/encoder/HuffmanEncoder.hpp"
-#include "SZ3/lossless/Lossless.hpp"
-#include "SZ3/predictor/LorenzoPredictor.hpp"
-#include "SZ3/predictor/Predictor.hpp"
-#include "SZ3/quantizer/Quantizer.hpp"
-#include "SZ3/utils/Accumulator.hpp"
-#include "SZ3/utils/ByteUtil.hpp"
-#include "SZ3/utils/Config.hpp"
-#include "SZ3/utils/FileUtil.hpp"
-#include "SZ3/utils/Interpolators.hpp"
-#include "SZ3/utils/Iterator.hpp"
-#include "SZ3/utils/MemoryUtil.hpp"
-#include "SZ3/utils/Timer.hpp"
+// #include "QoZ/compressor/SZInterpolation_postprocess.hpp"
+#include "QoZ/postprocess/compensate_2d.hpp"
+#include "QoZ/postprocess/post_compensate_zero_quant.hpp"
+#include "QoZ/def.hpp"
+#include "QoZ/encoder/Encoder.hpp"
+#include "QoZ/encoder/HuffmanEncoder.hpp"
+#include "QoZ/lossless/Lossless.hpp"
+#include "QoZ/predictor/LorenzoPredictor.hpp"
+#include "QoZ/predictor/Predictor.hpp"
+#include "QoZ/quantizer/Quantizer.hpp"
+// #include "QoZ/utils/Accumulator.hpp"
+#include "QoZ/utils/ByteUtil.hpp"
+#include "QoZ/utils/Config.hpp"
+#include "QoZ/utils/FileUtil.hpp"
+#include "QoZ/utils/Interpolators.hpp"
+#include "QoZ/utils/Iterator.hpp"
+#include "QoZ/utils/MemoryUtil.hpp"
+#include "QoZ/utils/Timer.hpp"
 
 
-namespace SZ {
+namespace QoZ {
 template <class T, uint N, class Quantizer, class Encoder, class Lossless>
 class SZErrorInterpolationCompressor {
  public:
@@ -145,7 +144,7 @@ class SZErrorInterpolationCompressor {
 
       size_t stride = 1U << (level - 1);
       auto inter_block_range =
-          std::make_shared<SZ::multi_dimensional_range<T, N>>(
+          std::make_shared<QoZ::multi_dimensional_range<T, N>>(
               decData, std::begin(global_dimensions),
               std::end(global_dimensions), stride * blocksize, 0);
       auto inter_begin = inter_block_range->begin();
@@ -183,280 +182,281 @@ class SZErrorInterpolationCompressor {
 
   uchar *compress(const Config &conf, T *data, size_t &compressed_size, bool tuning = false)
   {
-    std::copy_n(conf.dims.begin(), N, global_dimensions.begin());
-    blocksize = conf.interpBlockSize;
-    interpolator_id = conf.interpAlgo;
-    direction_sequence_id = conf.interpDirection;
-    // assign additional variable
+//     std::copy_n(conf.dims.begin(), N, global_dimensions.begin());
+//     blocksize = conf.interpBlockSize;
+//     interpolator_id = conf.interpAlgo;
+//     direction_sequence_id = conf.interpDirection;
+//     // assign additional variable
 
 
 
-    quant_pred_on = conf.quantization_prediction_on;
-    // if(tuning == true)
-    // {
-    //   quant_pred_on = false;
-    // }
-    quant_pred_start_level = conf.quantization_prediction_start_level;
-    // error smoothing
+//     quant_pred_on = conf.quantization_prediction_on;
+//     // if(tuning == true)
+//     // {
+//     //   quant_pred_on = false;
+//     // }
+//     quant_pred_start_level = conf.quantization_prediction_start_level;
+//     // error smoothing
 
 
 
-    orig_data_ptr = (const T *) conf.PASS_DATA.original_data_prt;
+//     orig_data_ptr = (const T *) conf.PASS_DATA.original_data_prt;
 
-    init();
-    // original_variance = SZ::data_variance(data, num_elements); 
-    // std::cout << "original variance = " << original_variance << std::endl;
-    // For data range check.
-    auto orig_min_max = std::minmax_element(data, data + num_elements);
-    original_min = *orig_min_max.first;
-    original_max = *orig_min_max.second;
-    std::cout << "original max " << original_max << std::endl;
-    std::cout << "original min " << original_min << std::endl;
+//     init();
+//     // original_variance = SZ::data_variance(data, num_elements); 
+//     // std::cout << "original variance = " << original_variance << std::endl;
+//     // For data range check.
+//     auto orig_min_max = std::minmax_element(data, data + num_elements);
+//     original_min = *orig_min_max.first;
+//     original_max = *orig_min_max.second;
+//     std::cout << "original max " << original_max << std::endl;
+//     std::cout << "original min " << original_min << std::endl;
     
-    original_range = original_max - original_min;
+//     original_range = original_max - original_min;
 
-    Timer timer;
+//     Timer timer;
 
-    quant_inds.reserve(num_elements);
-    size_t interp_compressed_size = 0;
-
-
-    double eb_input = quantizer.get_eb();
-    double eb_final;  // eb for the highest level
-    // double eb_reduction_factor;
-    if (interpolator_id == 0) {
-      eb_final = eb_input /
-                 pow(linear_interp_eb_factor, (interpolation_level - 1) * N);
-      eb_reduction_factor = pow(linear_interp_eb_factor, N);
-    }
-    else {
-      eb_final = eb_input /
-                 pow(cubic_interp_eb_factor, (interpolation_level - 1) * N);
-      eb_reduction_factor = pow(cubic_interp_eb_factor, N);
-    }
-
-    // quant_inds.push_back(quantizer.quantize_and_over*data, 0));
-    quantize(0, *data, 0);
-
-    // Timer timer;
-    timer.start();
-
-    // double reduction_factor;
-    // double real_eb_ratio;
-    // if( interpolators[interpolator_id] == "linear")
-    // {
-    //     reduction_factor = sqrt(27/8);
-    // }
-    // else
-    // {
-    //     reduction_factor = sqrt(4.462681);
-    // }
-    // real_eb_ratio = pow(1/reduction_factor, interpolation_level-1);
+//     quant_inds.reserve(num_elements);
+//     size_t interp_compressed_size = 0;
 
 
-    for (uint level = interpolation_level;
-         level > 0 && level <= interpolation_level; level--) {
-      // direction_sequence_id = direction_choice(mt);
-      // std::cout << "direction_sequence_id = " << direction_sequence_id <<
-      // std::endl; for (int i = 0; i < N; i++)
-      // {
-      //     std::cout << dimension_sequences[direction_sequence_id][i] << " ";
-      // }
-      // std::cout << std::endl;
-      // if (level >= 3) {
-      //     quantizer.set_eb(eb_input * eb_ratio);
-      // } else {
-      //     quantizer.set_eb(eb_input);
-      // }
+//     double eb_input = quantizer.get_eb();
+//     double eb_final;  // eb for the highest level
+//     // double eb_reduction_factor;
+//     if (interpolator_id == 0) {
+//       eb_final = eb_input /
+//                  pow(linear_interp_eb_factor, (interpolation_level - 1) * N);
+//       eb_reduction_factor = pow(linear_interp_eb_factor, N);
+//     }
+//     else {
+//       eb_final = eb_input /
+//                  pow(cubic_interp_eb_factor, (interpolation_level - 1) * N);
+//       eb_reduction_factor = pow(cubic_interp_eb_factor, N);
+//     }
+
+//     // quant_inds.push_back(quantizer.quantize_and_over*data, 0));
+//     quantize(0, *data, 0);
+
+//     // Timer timer;
+//     timer.start();
+
+//     // double reduction_factor;
+//     // double real_eb_ratio;
+//     // if( interpolators[interpolator_id] == "linear")
+//     // {
+//     //     reduction_factor = sqrt(27/8);
+//     // }
+//     // else
+//     // {
+//     //     reduction_factor = sqrt(4.462681);
+//     // }
+//     // real_eb_ratio = pow(1/reduction_factor, interpolation_level-1);
+
+
+//     for (uint level = interpolation_level;
+//          level > 0 && level <= interpolation_level; level--) {
+//       // direction_sequence_id = direction_choice(mt);
+//       // std::cout << "direction_sequence_id = " << direction_sequence_id <<
+//       // std::endl; for (int i = 0; i < N; i++)
+//       // {
+//       //     std::cout << dimension_sequences[direction_sequence_id][i] << " ";
+//       // }
+//       // std::cout << std::endl;
+//       // if (level >= 3) {
+//       //     quantizer.set_eb(eb_input * eb_ratio);
+//       // } else {
+//       //     quantizer.set_eb(eb_input);
+//       // }
      
       
-      current_level = level;
-      current_base_eb = eb_final;
-      quantizer.set_eb(eb_final);
-      eb_final *= eb_reduction_factor;
+//       current_level = level;
+//       current_base_eb = eb_final;
+//       quantizer.set_eb(eb_final);
+//       eb_final *= eb_reduction_factor;
 
-      // linear increase 
-      // current_level = level; 
-      // double current_eb = eb_input + (1e-32 - eb_input)/(interpolation_level -1)*(level-1);
-      // quantizer.set_eb(current_eb);
+//       // linear increase 
+//       // current_level = level; 
+//       // double current_eb = eb_input + (1e-32 - eb_input)/(interpolation_level -1)*(level-1);
+//       // quantizer.set_eb(current_eb);
 
-      // exponent 
-      // current_level = level;
-      // double current_eb = eb_input * std::exp(1) * std::exp(-1.0*level);
-      // quantizer.set_eb(eb_input/(level*level*level));
+//       // exponent 
+//       // current_level = level;
+//       // double current_eb = eb_input * std::exp(1) * std::exp(-1.0*level);
+//       // quantizer.set_eb(eb_input/(level*level*level));
 
-      // if(level >1)
-      // {
-      //   quantizer.set_eb(1e-32*eb_input);
-      // }
-      // else {
-      //   quantizer.set_eb(eb_input);
-      // }
-
-
-      // if (level <= 2) {
-      //   quantizer.set_eb(eb_input);
-      // }
-
-      size_t stride = 1U << (level - 1);
-
-      // printf("blocksize = %d\n", blocksize);
-      {
-      auto inter_block_range =
-          std::make_shared<SZ::multi_dimensional_range<T, N>>(
-              data, std::begin(global_dimensions), std::end(global_dimensions),
-              blocksize * stride, 0);
-
-      auto inter_begin = inter_block_range->begin();
-      auto inter_end = inter_block_range->end();
-
-      for (auto block = inter_begin; block != inter_end; ++block) {
-        auto end_idx = block.get_global_index();
-        for (int i = 0; i < N; i++) {
-          end_idx[i] += blocksize * stride;
-          if (end_idx[i] > global_dimensions[i] - 1) {
-            end_idx[i] = global_dimensions[i] - 1;
-          }
-        }
-        block_interpolation(
-            data, block.get_global_index(), end_idx, PB_predict_overwrite,
-            interpolators[interpolator_id], direction_sequence_id, stride);
-      }
-      }
-
-    }
-
-    assert(quant_inds.size() <= num_elements);
-
-    encoder.preprocess_encode(quant_inds, 0);
-    size_t bufferSize = 1.5 * (quantizer.size_est() + encoder.size_est() +
-                               sizeof(T) * quant_inds.size());
-
-    // TODO: change to smart pointer here
-    uchar *buffer = new uchar[bufferSize];
-    uchar *buffer_pos = buffer;
-
-    std::cout << "bufferSize = " << bufferSize << std::endl; 
-
-    write(global_dimensions.data(), N, buffer_pos);
-    write(blocksize, buffer_pos);
-    write(interpolator_id, buffer_pos);
-    write(direction_sequence_id, buffer_pos);
-
-    write(original_max, buffer_pos);
-    write(original_min, buffer_pos);
+//       // if(level >1)
+//       // {
+//       //   quantizer.set_eb(1e-32*eb_input);
+//       // }
+//       // else {
+//       //   quantizer.set_eb(eb_input);
+//       // }
 
 
-    quantizer.save(buffer_pos);
-    quantizer.postcompress_data();
+//       // if (level <= 2) {
+//       //   quantizer.set_eb(eb_input);
+//       // }
 
-    timer.start();
-    encoder.save(buffer_pos);
-    encoder.encode(quant_inds, buffer_pos);
-    encoder.postprocess_encode();
-    //            timer.stop("Coding");
-    assert(buffer_pos - buffer < bufferSize);
+//       size_t stride = 1U << (level - 1);
+
+//       // printf("blocksize = %d\n", blocksize);
+//       {
+//       auto inter_block_range =
+//           std::make_shared<SZ::multi_dimensional_range<T, N>>(
+//               data, std::begin(global_dimensions), std::end(global_dimensions),
+//               blocksize * stride, 0);
+
+//       auto inter_begin = inter_block_range->begin();
+//       auto inter_end = inter_block_range->end();
+
+//       for (auto block = inter_begin; block != inter_end; ++block) {
+//         auto end_idx = block.get_global_index();
+//         for (int i = 0; i < N; i++) {
+//           end_idx[i] += blocksize * stride;
+//           if (end_idx[i] > global_dimensions[i] - 1) {
+//             end_idx[i] = global_dimensions[i] - 1;
+//           }
+//         }
+//         block_interpolation(
+//             data, block.get_global_index(), end_idx, PB_predict_overwrite,
+//             interpolators[interpolator_id], direction_sequence_id, stride);
+//       }
+//       }
+
+//     }
+
+//     assert(quant_inds.size() <= num_elements);
+
+//     encoder.preprocess_encode(quant_inds, 0);
+//     size_t bufferSize = 1.5 * (quantizer.size_est() + encoder.size_est() +
+//                                sizeof(T) * quant_inds.size());
+
+//     // TODO: change to smart pointer here
+//     uchar *buffer = new uchar[bufferSize];
+//     uchar *buffer_pos = buffer;
+
+//     std::cout << "bufferSize = " << bufferSize << std::endl; 
+
+//     write(global_dimensions.data(), N, buffer_pos);
+//     write(blocksize, buffer_pos);
+//     write(interpolator_id, buffer_pos);
+//     write(direction_sequence_id, buffer_pos);
+
+//     write(original_max, buffer_pos);
+//     write(original_min, buffer_pos);
+
+
+//     quantizer.save(buffer_pos);
+//     quantizer.postcompress_data();
+
+//     timer.start();
+//     encoder.save(buffer_pos);
+//     encoder.encode(quant_inds, buffer_pos);
+//     encoder.postprocess_encode();
+//     //            timer.stop("Coding");
+//     assert(buffer_pos - buffer < bufferSize);
     
-    // writefile("compressed.dat",data, num_elements);
-    timer.start();
-    uchar *lossless_data =
-        lossless.compress(buffer, buffer_pos - buffer, compressed_size);
+//     // writefile("compressed.dat",data, num_elements);
+//     timer.start();
+//     uchar *lossless_data =
+//         lossless.compress(buffer, buffer_pos - buffer, compressed_size);
 
-    lossless.postcompress_data(buffer);
-
-
-
-
-      // free the error compression ptr 
+//     lossless.postcompress_data(buffer);
 
 
 
-    // post process
-    // writefile("compressed.dat", data, num_elements);
-    // if(N==3)
-    // {
-    //   std::cout << "3D post process" << std::endl;
-    //   compensation_3d2(
-    //   data, aux_quant_inds.data(), conf.dims.data(), 0,quantizer.get_eb());
-    // }
 
-    // writefile("post_compressed.dat", data, num_elements);
-
-    // writefile("rand.dat", rand_collector.data(), num_elements);
-    // writefile("pred_noise.dat", my_pred_noise.data(), num_elements);
-    // writefile("error.dat", error_recorder.data(), num_elements);
-    // writefile("quant_inds.compress.dat", quant_inds.data(),
-    // quant_inds.size());
-
-    //   writefile("flushed_block_id.compress.dat", flushed_block_id.data(),
-    //           num_detection_block);
-    // writefile("significant_block_id.compress.dat",
-    //           significant_block_id.data(), num_detection_block);
-    // writefile("flushed_block.compress.dat", flushed_block.data(),
-    //           num_elements);
-    // writefile("significant_block.compress.dat", significant_block.data(),
-    // num_elements);
+//       // free the error compression ptr 
 
 
-#ifdef SZ_ERROR_ANALYSIS
-    writefile("pred.dat", my_pred.data(), num_elements);
-    writefile("quant.dat", aux_quant_inds.data(), num_elements);
-    writefile("quant_processed.dat", my_quant_inds_copy.data(), num_elements);
-    writefile("decompressed.dat", data, num_elements);
-    writefile("level.dat", my_level.data(), num_elements);
-    writefile(
-        "interp_direction.dat", my_interp_direction.data(), num_elements);
-    writefile(
-        "compensation_label.int32", my_compensation_label.data(),
-        my_compensation_label.size());
-    std::cout << "[ANALYSIS COMPILATION MODE]" << std::endl;
 
-    // Try huffman encoding on inorder quantization and level-wise quantization
-    // integers
-    // SZ::HuffmanEncoder<int> huff_coding = SZ::HuffmanEncoder<int>();
+//     // post process
+//     // writefile("compressed.dat", data, num_elements);
+//     // if(N==3)
+//     // {
+//     //   std::cout << "3D post process" << std::endl;
+//     //   compensation_3d2(
+//     //   data, aux_quant_inds.data(), conf.dims.data(), 0,quantizer.get_eb());
+//     // }
 
-    // uchar *test_buffer = new uchar[bufferSize];
-    // uchar *test_buffer_pos = test_buffer;
-    // huff_coding.preprocess_encode(aux_quant_inds, 0);
-    // huff_coding.save(test_buffer_pos);
-    // huff_coding.encode(aux_quant_inds, test_buffer_pos);
-    // huff_coding.postprocess_encode();
-    // size_t comsize = 0;
-    // uchar *lossless_data2 =
-    //     lossless.compress(test_buffer, test_buffer_pos - test_buffer,
-    //     comsize);
-    // // lossless.postcompress_data(test_buffer);
+//     // writefile("post_compressed.dat", data, num_elements);
 
-    // std::cout << "[inorder]comsize = " << comsize << std::endl;
-    // free(test_buffer);
+//     // writefile("rand.dat", rand_collector.data(), num_elements);
+//     // writefile("pred_noise.dat", my_pred_noise.data(), num_elements);
+//     // writefile("error.dat", error_recorder.data(), num_elements);
+//     // writefile("quant_inds.compress.dat", quant_inds.data(),
+//     // quant_inds.size());
 
-    // // try it on level-wise quantization integers
-    // SZ::HuffmanEncoder<int> huff_coding2 = SZ::HuffmanEncoder<int>();
+//     //   writefile("flushed_block_id.compress.dat", flushed_block_id.data(),
+//     //           num_detection_block);
+//     // writefile("significant_block_id.compress.dat",
+//     //           significant_block_id.data(), num_detection_block);
+//     // writefile("flushed_block.compress.dat", flushed_block.data(),
+//     //           num_elements);
+//     // writefile("significant_block.compress.dat", significant_block.data(),
+//     // num_elements);
 
-    // uchar *test_buffer2 = new uchar[bufferSize];
-    // uchar *test_buffer_pos2 = test_buffer2;
-    // huff_coding2.preprocess_encode(quant_inds, 0);
-    // huff_coding2.save(test_buffer_pos2);
-    // huff_coding2.encode(quant_inds, test_buffer_pos2);
-    // huff_coding2.postprocess_encode();
 
-    // size_t comsize2 = 0;
-    // uchar *lossless_data3 = lossless.compress(
-    //     test_buffer2, test_buffer_pos2 - test_buffer2, comsize2);
-    // // lossless.postcompress_data(test_buffer2);
+// #ifdef SZ_ERROR_ANALYSIS
+//     writefile("pred.dat", my_pred.data(), num_elements);
+//     writefile("quant.dat", aux_quant_inds.data(), num_elements);
+//     writefile("quant_processed.dat", my_quant_inds_copy.data(), num_elements);
+//     writefile("decompressed.dat", data, num_elements);
+//     writefile("level.dat", my_level.data(), num_elements);
+//     writefile(
+//         "interp_direction.dat", my_interp_direction.data(), num_elements);
+//     writefile(
+//         "compensation_label.int32", my_compensation_label.data(),
+//         my_compensation_label.size());
+//     std::cout << "[ANALYSIS COMPILATION MODE]" << std::endl;
 
-    // std::cout << "[level-wise]comsize = " << comsize2 << std::endl;
+//     // Try huffman encoding on inorder quantization and level-wise quantization
+//     // integers
+//     // SZ::HuffmanEncoder<int> huff_coding = SZ::HuffmanEncoder<int>();
 
-    // std::cout << "[level-wise] huffman encoding size = " << test_buffer_pos2
-    // - test_buffer2 << std::endl;
-    // free(test_buffer2);
+//     // uchar *test_buffer = new uchar[bufferSize];
+//     // uchar *test_buffer_pos = test_buffer;
+//     // huff_coding.preprocess_encode(aux_quant_inds, 0);
+//     // huff_coding.save(test_buffer_pos);
+//     // huff_coding.encode(aux_quant_inds, test_buffer_pos);
+//     // huff_coding.postprocess_encode();
+//     // size_t comsize = 0;
+//     // uchar *lossless_data2 =
+//     //     lossless.compress(test_buffer, test_buffer_pos - test_buffer,
+//     //     comsize);
+//     // // lossless.postcompress_data(test_buffer);
 
-    // writefile("quant_level.dat", quant_inds.data(), quant_inds.size());
+//     // std::cout << "[inorder]comsize = " << comsize << std::endl;
+//     // free(test_buffer);
 
-#endif
+//     // // try it on level-wise quantization integers
+//     // SZ::HuffmanEncoder<int> huff_coding2 = SZ::HuffmanEncoder<int>();
 
-    compressed_size += interp_compressed_size;
-    return lossless_data;
+//     // uchar *test_buffer2 = new uchar[bufferSize];
+//     // uchar *test_buffer_pos2 = test_buffer2;
+//     // huff_coding2.preprocess_encode(quant_inds, 0);
+//     // huff_coding2.save(test_buffer_pos2);
+//     // huff_coding2.encode(quant_inds, test_buffer_pos2);
+//     // huff_coding2.postprocess_encode();
+
+//     // size_t comsize2 = 0;
+//     // uchar *lossless_data3 = lossless.compress(
+//     //     test_buffer2, test_buffer_pos2 - test_buffer2, comsize2);
+//     // // lossless.postcompress_data(test_buffer2);
+
+//     // std::cout << "[level-wise]comsize = " << comsize2 << std::endl;
+
+//     // std::cout << "[level-wise] huffman encoding size = " << test_buffer_pos2
+//     // - test_buffer2 << std::endl;
+//     // free(test_buffer2);
+
+//     // writefile("quant_level.dat", quant_inds.data(), quant_inds.size());
+
+// #endif
+
+//     compressed_size += interp_compressed_size;
+    return nullptr;
+    // return lossless_data;
   }
 
  private:

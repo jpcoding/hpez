@@ -18,6 +18,7 @@
 #include <cstring>
 #include <limits>
 #include <linux/limits.h>
+#include <memory>
 namespace QoZ {
 template <class T, uint N, class Quantizer, class Encoder, class Lossless>
 class SZInterpolationCompressor
@@ -44,6 +45,7 @@ public:
 
   T *decompress(uchar const *cmpData, const size_t &cmpSize, T *decData) {
     // std::cout<<"dawd"<<std::endl;
+    orig_data_start = decData;
     size_t remaining_length = cmpSize;
     uchar *buffer = lossless.decompress(cmpData, remaining_length);
     int levelwise_predictor_levels;
@@ -882,7 +884,9 @@ public:
     // timer.stop("Lossless") ;
     compressed_size += interp_compressed_size;
     //  std::cout<<quant_index<<std::endl;
+    conf.PASS_DATA.aux_quant_inds_ptr = aux_quant_inds_ptr;
     // { writefile("quant.i32", aux_quant_inds.data(), num_elements); }
+
 
     return lossless_data;
   }
@@ -945,7 +949,7 @@ private:
           dimension_offsets[i + 1] * global_dimensions[i + 1];
     }
     dimension_sequences = std::vector<std::array<size_t, N>>();
-    auto sequence = std::array<size_t, N>();
+    auto sequence = std::array<size_t, N>(); 
     for (size_t i = 0; i < N; i++) {
       sequence[i] = i;
     }
@@ -955,7 +959,9 @@ private:
 
     // mark.clear();
     // mark.resize(num_elements,false);
-    aux_quant_inds.resize(num_elements, 0);
+    // aux_quant_inds.resize(num_elements, 0);
+    aux_quant_inds_ptr = std::make_shared<std::vector<int>>();
+    aux_quant_inds_ptr->resize(num_elements, 0);
   }
 
   void build_grid(Config &conf, T *data, size_t maxStep, int tuning = 0) {
@@ -1117,7 +1123,7 @@ private:
     */
     quant_inds.push_back(quantizer.quantize_and_overwrite(d, pred));
     // return fabs(d-orig);
-    aux_quant_inds[idx] = quant_inds.back();
+    (*aux_quant_inds_ptr)[idx] = quant_inds.back();
   }
 
   inline double quantize_tuning(size_t idx, T &d, T pred, int mode = 1) {
@@ -1204,11 +1210,11 @@ private:
     if (mode == -1) { // recover
       // d = quantizer.recover(pred, quant_inds[quant_index++]);
       d = quantizer.recover(pred, quant_inds[idx]);
-      aux_quant_inds[idx] = quant_inds[idx];
+      (*aux_quant_inds_ptr)[&d - orig_data_start] = quant_inds[idx];
       return 0;
     } else if (mode == 0) {
       quant_inds.push_back(quantizer.quantize_and_overwrite(d, pred));
-      aux_quant_inds[&d - orig_data_start] = quant_inds.back();
+      (*aux_quant_inds_ptr)[&d - orig_data_start] = quant_inds.back();
       return 0;
     } else if (mode == 1) {
       T orig = d;
@@ -13433,8 +13439,8 @@ pb,meta,coeffs,tuning);
   // size_t min_anchor_level;//temp for "adaptive anchor stride";
   // double anchor_threshold=0.0;//temp for "adaptive anchor stride";
 
-  std::vector<int> aux_quant_inds;
-  std::unique_ptr<std::vector<int>> aux_quant_inds_ptr;
+  // std::vector<int> aux_quant_inds;
+  std::shared_ptr<std::vector<int>> aux_quant_inds_ptr;
   T *orig_data_start;
 };
 

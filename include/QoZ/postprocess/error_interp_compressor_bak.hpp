@@ -11,26 +11,26 @@
 #include <memory>
 #include <random>
 #include <vector>
-#include "SZ3/utils/Statistic.hpp"
+#include "QoZ/utils/Statistic.hpp"
 
-// #include "SZ3/compressor/SZInterpolation_postprocess.hpp"
-#include "SZ3/def.hpp"
-#include "SZ3/encoder/Encoder.hpp"
-#include "SZ3/encoder/HuffmanEncoder.hpp"
-#include "SZ3/lossless/Lossless.hpp"
-#include "SZ3/predictor/LorenzoPredictor.hpp"
-#include "SZ3/predictor/Predictor.hpp"
-#include "SZ3/quantizer/Quantizer.hpp"
-#include "SZ3/utils/Accumulator.hpp"
-#include "SZ3/utils/ByteUtil.hpp"
-#include "SZ3/utils/Config.hpp"
-#include "SZ3/utils/FileUtil.hpp"
-#include "SZ3/utils/Interpolators.hpp"
-#include "SZ3/utils/Iterator.hpp"
-#include "SZ3/utils/MemoryUtil.hpp"
-#include "SZ3/utils/Timer.hpp"
+// #include "QoZ/compressor/SZInterpolation_postprocess.hpp"
+#include "QoZ/def.hpp"
+#include "QoZ/encoder/Encoder.hpp"
+#include "QoZ/encoder/HuffmanEncoder.hpp"
+#include "QoZ/lossless/Lossless.hpp"
+#include "QoZ/predictor/LorenzoPredictor.hpp"
+#include "QoZ/predictor/Predictor.hpp"
+#include "QoZ/quantizer/Quantizer.hpp"
+#include "QoZ/utils/Accumulator.hpp"
+#include "QoZ/utils/ByteUtil.hpp"
+#include "QoZ/utils/Config.hpp"
+#include "QoZ/utils/FileUtil.hpp"
+#include "QoZ/utils/Interpolators.hpp"
+#include "QoZ/utils/Iterator.hpp"
+#include "QoZ/utils/MemoryUtil.hpp"
+#include "QoZ/utils/Timer.hpp"
 
-namespace SZ {
+namespace QoZ {
 template <class T, uint N, class Quantizer, class Encoder, class Lossless>
 class SZErrorInterpolationCompressor {
  public:

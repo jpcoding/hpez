@@ -2,7 +2,7 @@
 #define SZ_DSJ_HPP
 
 
-#include <SZ3/utils/FileUtil.hpp>
+#include <QoZ/utils/FileUtil.hpp>
 #include <algorithm>
 #include <cstddef>
 #include <unordered_map>
@@ -48,8 +48,8 @@ public:
   }
 
   void writefiles() {
-    SZ::writefile("parent.dat", parent.data(), parent.size());
-    SZ::writefile("rank.dat", rank.data(), rank.size());
+    QoZ::writefile("parent.dat", parent.data(), parent.size());
+    QoZ::writefile("rank.dat", rank.data(), rank.size());
   }
 
   std::vector<int> get_map() { return parent; }

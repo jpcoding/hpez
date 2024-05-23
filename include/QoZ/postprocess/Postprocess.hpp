@@ -7,13 +7,14 @@
 #include <memory>
 #include <vector>
 
-#include "SZ3/def.hpp"
-#include "SZ3/quantizer/Quantizer.hpp"
-#include "SZ3/quantizer/IntegerQuantizer.hpp"
-#include "SZ3/utils/Config.hpp"
-#include "SZ3/postprocess/error_compression.hpp"
+#include "QoZ/def.hpp"
+#include "QoZ/quantizer/Quantizer.hpp"
+#include "QoZ/quantizer/IntegerQuantizer.hpp"
+#include "QoZ/utils/Config.hpp"
+#include "QoZ/postprocess/error_compression.hpp"
+#include "QoZ/postprocess/Error_smoothing1d.hpp"
 
-namespace SZ {
+namespace QoZ {
 template <class T, uint N>
 class SZPostprocessor {
  public:
@@ -23,17 +24,15 @@ class SZPostprocessor {
     std::cout << "abs eb = " << conf.absErrorBound << std::endl;
     std::copy_n(conf.dims.begin(), N, global_dimensions.begin());
     blocksize = conf.interpBlockSize;
-    interpolator_id = conf.interpAlgo;
     std::cout << "interpolator_id = " << interpolator_id << std::endl;
-    direction_sequence_id = conf.interpDirection;
+    direction_sequence_id = 5;
     std::cout << "direction sequence id = " << direction_sequence_id << std::endl;
     aux_quant_inds = conf.PASS_DATA.aux_quant_inds_ptr;
-    direction_sequence_id = conf.interpDirection;
-    quantizer = SZ::LinearQuantizer<T>(conf.absErrorBound, conf.quantbinCnt / 2);
+
+    quantizer = QoZ::LinearQuantizer<T>(conf.absErrorBound, conf.quantbinCnt / 2);
     quantizer.set_eb(conf.absErrorBound);
     std::cout << "at the begin quantizer.get_eb() = " << quantizer.get_eb() << std::endl;
 
-    int interpolator_id = conf.interpAlgo;
     // double eb_reduction_factor;
 
     init();
@@ -49,11 +48,11 @@ class SZPostprocessor {
         quantizer.set_eb(level_ebs[level - 1]);
         std::cout << "current quantizer.get_eb() = " << quantizer.get_eb() << std::endl;
         // change blocksize to the whole dataset size
-        int blocksize_copy = blocksize;
+        // int blocksize_copy = blocksize;
         blocksize = *std::max_element(global_dimensions.begin(), global_dimensions.end())+1;
         std::cout << "blocksize = " << blocksize << std::endl;
         auto inter_block_range_post =
-          std::make_shared<SZ::multi_dimensional_range<T, N>>(
+          std::make_shared<QoZ::multi_dimensional_range<T, N>>(
               processed_data, std::begin(global_dimensions), std::end(global_dimensions),
               blocksize * stride, 0);
         auto inter_begin_post = inter_block_range_post->begin();
@@ -70,7 +69,7 @@ class SZPostprocessor {
               processed_data, block.get_global_index(), end_idx,
               interpolators[interpolator_id], direction_sequence_id, stride);
         }
-        blocksize = blocksize_copy;
+        // blocksize = blocksize_copy;
       }   
 
 
@@ -200,25 +199,26 @@ class SZPostprocessor {
         std::array<size_t, 3>& global_dimensions,
         std::array<size_t, 3>& dimension_offsets, uchar*& buffer_pos)
     {
-      std::cout << "compile for 3D cases\n";
-      // write the downsampled and decompressed data for the last level
-      auto error_compressor = SZ::ErrorCompressor<T, 3>(
-          num_elements, global_dimensions.data(), dimension_offsets.data(),
-          direction_sequence_id);
-      compressed_error_size = 0;
-      auto dims = dimension_sequences[direction_sequence_id];
-      int interp_direction = dims[2];
-      int interp_dir_stride = 2;
-      int plane_dir1 = dims[0];
-      int plane_dir2 = dims[1];
-      int plane_dir1_stride = 1;
-      int plane_dir2_stride = 1;
-      int plane_sample_stride = 4;
+      return nullptr;
+      // std::cout << "compile for 3D cases\n";
+      // // write the downsampled and decompressed data for the last level
+      // auto error_compressor = QoZ::ErrorCompressor<T, 3>(
+      //     num_elements, global_dimensions.data(), dimension_offsets.data(),
+      //     direction_sequence_id);
+      // compressed_error_size = 0;
+      // auto dims = dimension_sequences[direction_sequence_id];
+      // int interp_direction = dims[2];
+      // int interp_dir_stride = 2;
+      // int plane_dir1 = dims[0];
+      // int plane_dir2 = dims[1];
+      // int plane_dir1_stride = 1;
+      // int plane_dir2_stride = 1;
+      // int plane_sample_stride = 4;
 
-      uchar* error_compressed_data = error_compressor.error_compensation_3d(
-          orig_data_ptr, data, compressed_error_size, interp_direction,
-          interp_dir_stride, plane_dir1, plane_dir1_stride, plane_dir2,
-          plane_dir2_stride, plane_sample_stride);
+      // uchar* error_compressed_data = error_compressor.error_compensation_3d(
+      //     orig_data_ptr, data, compressed_error_size, interp_direction,
+      //     interp_dir_stride, plane_dir1, plane_dir1_stride, plane_dir2,
+      //     plane_dir2_stride, plane_sample_stride);
       // std::cout << error_compressed_data << std::endl;
       // append the compressed error data to the buffer
       // std::cout<<"complete writing error data\n";
@@ -226,7 +226,7 @@ class SZPostprocessor {
       // write(error_compressed_data, compressed_error_size, buffer_pos);
       // delete[] error_compressed_data;
       // return nullptr;
-      return error_compressed_data;
+      // return error_compressed_data;
     }
 
     template <uint NN = N>
@@ -250,7 +250,7 @@ class SZPostprocessor {
   std::vector<int> quant_inds;
   size_t quant_index = 0;  // for decompress
   double max_error;
-  SZ::LinearQuantizer<T> quantizer;
+  QoZ::LinearQuantizer<T> quantizer;
   size_t num_elements;
   std::array<size_t, N> global_dimensions;
   std::array<size_t, N> dimension_offsets;

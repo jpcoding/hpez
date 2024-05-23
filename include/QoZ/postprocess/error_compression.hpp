@@ -9,30 +9,30 @@
 #include<cmath>
 #include<limits>
 #include <memory>
-#include "SZ3/quantizer/IntegerQuantizer.hpp"
-#include "SZ3/utils/ByteUtil.hpp"
-#include "SZ3/utils/Config.hpp"
-#include "SZ3/utils/FileUtil.hpp"
-#include "SZ3/utils/Interpolators.hpp"
-#include "SZ3/utils/Iterator.hpp"
-#include "SZ3/utils/MemoryUtil.hpp"
-#include "SZ3/utils/Timer.hpp"
-#include "SZ3/quantizer/Quantizer.hpp"
-#include "SZ3/encoder/Encoder.hpp"
-#include "SZ3/lossless/Lossless.hpp"
-#include "SZ3/encoder/Encoder.hpp"
-#include "SZ3/encoder/HuffmanEncoder.hpp"
-#include "SZ3/lossless/Lossless.hpp"
-#include "SZ3/predictor/LorenzoPredictor.hpp"
-#include "SZ3/predictor/Predictor.hpp"
-#include "SZ3/utils/Interpolators.hpp"
-// #include "SZ3/compressor/SZInterpolationCompressor.hpp"
-#include "SZ3/lossless/Lossless_zstd.hpp"
-#include "SZ3/postprocess/error_interp_compressor.hpp"
+#include "QoZ/quantizer/IntegerQuantizer.hpp"
+#include "QoZ/utils/ByteUtil.hpp"
+#include "QoZ/utils/Config.hpp"
+#include "QoZ/utils/FileUtil.hpp"
+#include "QoZ/utils/Interpolators.hpp"
+#include "QoZ/utils/Iterator.hpp"
+#include "QoZ/utils/MemoryUtil.hpp"
+#include "QoZ/utils/Timer.hpp"
+#include "QoZ/quantizer/Quantizer.hpp"
+#include "QoZ/encoder/Encoder.hpp"
+#include "QoZ/lossless/Lossless.hpp"
+#include "QoZ/encoder/Encoder.hpp"
+#include "QoZ/encoder/HuffmanEncoder.hpp"
+#include "QoZ/lossless/Lossless.hpp"
+#include "QoZ/predictor/LorenzoPredictor.hpp"
+#include "QoZ/predictor/Predictor.hpp"
+#include "QoZ/utils/Interpolators.hpp"
+// #include "QoZ/compressor/SZInterpolationCompressor.hpp"
+#include "QoZ/lossless/Lossless_zstd.hpp"
+#include "QoZ/postprocess/error_interp_compressor.hpp"
 
 
 
-namespace SZ {
+namespace QoZ {
 
 
 template <class T, uint N>
@@ -200,23 +200,23 @@ sample stride if for the slice
     // double rel_eb = 0.005;
     // double abs_eb = (*std::max_element(error_sample.begin(), error_sample.end()) - *std::min_element(error_sample.begin(), error_sample.end()))*rel_eb;
     // // build a quantizer
-    // // auto error_quantizer = SZ::LinearQuantizer<T>(abs_eb);
-    // // auto error_encoder = SZ::HuffmanEncoder<int>();
-    // // auto error_lossless = SZ::Lossless_zstd();
+    // // auto error_quantizer = QoZ::LinearQuantizer<T>(abs_eb);
+    // // auto error_encoder = QoZ::HuffmanEncoder<int>();
+    // // auto error_lossless = QoZ::Lossless_zstd();
 
-    // auto error_config = SZ::Config(error_global_dimensions[0], error_global_dimensions[1], error_global_dimensions[2]);
+    // auto error_config = QoZ::Config(error_global_dimensions[0], error_global_dimensions[1], error_global_dimensions[2]);
     // error_config.error_smoothing = false;
     // error_config.compress_error = false;
     // error_config.absErrorBound = abs_eb; 
 
-    // auto interpolation_compressor = SZErrorInterpolationCompressor<T, 3, SZ::LinearQuantizer<T>, SZ::HuffmanEncoder<int>, SZ::Lossless_zstd>(
-    //         SZ::LinearQuantizer<T>(error_config.absErrorBound, error_config.quantbinCnt / 2),
-    //         SZ::HuffmanEncoder<int>(),
-    //         SZ::Lossless_zstd());
+    // auto interpolation_compressor = SZErrorInterpolationCompressor<T, 3, QoZ::LinearQuantizer<T>, QoZ::HuffmanEncoder<int>, QoZ::Lossless_zstd>(
+    //         QoZ::LinearQuantizer<T>(error_config.absErrorBound, error_config.quantbinCnt / 2),
+    //         QoZ::HuffmanEncoder<int>(),
+    //         QoZ::Lossless_zstd());
 
     // // compress the error sample 
     // // build a compressor 
-    // // auto interpolation_compressor = SZ::SZInterpolationCompressor<T,3,SZ::LinearQuantizer<T>, SZ::HuffmanEncoder<int>, SZ::Lossless_zstd> (error_quantizer, error_encoder,error_lossless);
+    // // auto interpolation_compressor = QoZ::SZInterpolationCompressor<T,3,QoZ::LinearQuantizer<T>, QoZ::HuffmanEncoder<int>, QoZ::Lossless_zstd> (error_quantizer, error_encoder,error_lossless);
     // // make a config file 
 
 
@@ -230,32 +230,33 @@ sample stride if for the slice
 
 uchar* compress_error_3d(T* downsampled_error, size_t &compressed_error_size, double abs_eb )
 {
-    auto error_config = SZ::Config(error_global_dimensions[0], error_global_dimensions[1], error_global_dimensions[2]);
-    error_config.error_smoothing = false;
-    error_config.compress_error = false;
-    error_config.absErrorBound = abs_eb; 
-    error_config.error_smoothing = false;
-    error_config.compress_error = false;
-    error_config.quantization_prediction_on = 0;
-    error_config.quantization_prediction_start_level= 0;
-    error_config.blockSize = 9999;
-    // std::cout << "error_config.absErrorBound = " << error_config.absErrorBound << std::endl; 
+    // auto error_config = QoZ::Conclearfig(error_global_dimensions[0], error_global_dimensions[1], error_global_dimensions[2]);
+    // error_config.error_smoothing = false;
+    // error_config.compress_error = false;
+    // error_config.absErrorBound = abs_eb; 
+    // error_config.error_smoothing = false;
+    // error_config.compress_error = false;
+    // error_config.quantization_prediction_on = 0;
+    // error_config.quantization_prediction_start_level= 0;
+    // error_config.blockSize = 9999;
+    // // std::cout << "error_config.absErrorBound = " << error_config.absErrorBound << std::endl; 
 
-    // compress the error sample 
-    // build a compressor 
-    std::cout << "error_config.num = " << error_config.num << std::endl;
+    // // compress the error sample 
+    // // build a compressor 
+    // std::cout << "error_config.num = " << error_config.num << std::endl;
     
-    auto interpolation_compressor = SZErrorInterpolationCompressor<T, 3, SZ::LinearQuantizer<T>, SZ::HuffmanEncoder<int>, SZ::Lossless_zstd>(
-            SZ::LinearQuantizer<T>(error_config.absErrorBound, error_config.quantbinCnt),
-            SZ::HuffmanEncoder<int>(),
-            SZ::Lossless_zstd());
-                // make a config file 
+    // auto interpolation_compressor = SZErrorInterpolationCompressor<T, 3, QoZ::LinearQuantizer<T>, QoZ::HuffmanEncoder<int>, QoZ::Lossless_zstd>(
+    //         QoZ::LinearQuantizer<T>(error_config.absErrorBound, error_config.quantbinCnt),
+    //         QoZ::HuffmanEncoder<int>(),
+    //         QoZ::Lossless_zstd());
+    //             // make a config file 
     
 
-    compressed_error_size = 0;
-    uchar* compressed_error = interpolation_compressor.compress(error_config, downsampled_error, compressed_error_size);
-        // uchar *mmmm = new uchar[60];   
-    return compressed_error;
+    // compressed_error_size = 0;
+    // uchar* compressed_error = interpolation_compressor.compress(error_config, downsampled_error, compressed_error_size);
+    //     // uchar *mmmm = new uchar[60];   
+    // return compressed_error;
+    return nullptr; 
 }
 
 template <uint NN = N>
@@ -354,7 +355,7 @@ void init()
         error_dimension_offsets[i] = orig_dimension_offsets[i];
     }
 
-    // auto interpolation_compressor = SZ::SZInterpolationCompressor(quantizer, encoder, lossless);
+    // auto interpolation_compressor = QoZ::SZInterpolationCompressor(quantizer, encoder, lossless);
 
 
 }

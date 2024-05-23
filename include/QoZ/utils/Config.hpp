@@ -46,8 +46,13 @@ namespace QoZ {
         uint8_t interpParadigm = 0;//1D, MD,HD
         uint8_t cubicSplineType = 0;//noknot,nat
         uint8_t interpDirection = 0;//0,N!-1
-        uint8_t adjInterp=0;//0,1
+        uint8_t adjInterp=0;//0,1 
         std::array<float,3> dimCoeffs={1.0/3.0,1.0/3.0,1.0/3.0};
+        /*
+        interpParadigm determines whether the interpolation is 1D, MD or HD. 
+        what is HD?
+        adjInterp is to control whether to use more neighbors for prediction. 
+        */
  
     };
 
@@ -79,6 +84,9 @@ namespace QoZ {
         template<class ... Dims>
         Config(Dims ... args) {
             dims = std::vector<size_t>{static_cast<size_t>(std::forward<Dims>(args))...};
+            for( auto i : dims){
+                std::cout<<"dim " << i<<std::endl;
+            }
            
             N = dims.size();
             num = std::accumulate(dims.begin(), dims.end(), (size_t) 1, std::multiplies<size_t>());
@@ -476,6 +484,8 @@ namespace QoZ {
         int fullAdjacentInterp=0;
         bool naturalSpline=0;
         bool quadInterp=false;
+
+        bool quant_pred = false;
         //bool fineGrainTuning=false;
         //bool profilingFix=true;//only for test
 

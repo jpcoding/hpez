@@ -68,7 +68,11 @@ char *SZ_compress( QoZ::Config &config, const T *data, size_t &outSize) {
         printf("Data dimension higher than 4 is not supported.\n");
         exit(0);
     }
-    
+
+    config.PASS_DATA.processed_data_prt = conf.PASS_DATA.processed_data_prt;
+    config.absErrorBound = conf.absErrorBound;
+    config.PASS_DATA.aux_quant_inds_ptr = conf.PASS_DATA.aux_quant_inds_ptr;
+
     
 
     {

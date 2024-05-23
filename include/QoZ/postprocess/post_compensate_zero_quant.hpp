@@ -6,7 +6,7 @@
 #include <cmath>
 #include <vector> 
 
-namespace SZ {
+namespace QoZ {
 
 template<typename T>
 double block_compensation_1d(T *data, int* ordered_quant, size_t begin, size_t end, size_t stride)

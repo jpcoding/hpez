@@ -1,7 +1,11 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
+#include <memory>
+#include <vector>
 #include "QoZ/api/sz.hpp"
+#include "QoZ/utils/FileUtil.hpp"
+#include "QoZ/postprocess/Postprocess.hpp"
 
 #define SZ_FLOAT 0
 #define SZ_DOUBLE 1
@@ -156,12 +160,41 @@ void compress(char *inPath, char *cmpPath, QoZ::Config &conf) {//conf changed to
     QoZ::writefile(outputFilePath, bytes, outSize);
 
 
-    
-
 
     printf("compression ratio = %.2f \n", conf.num * 1.0 * sizeof(T) / outSize);
     printf("compression time = %f\n", compress_time);
     printf("compressed data file = %s\n", outputFilePath);
+
+    // smooth process is here;
+
+    std::cout << "conf.N = " << conf.N << "\n";
+    std::cout << "conf abs eb " << conf.absErrorBound << "\n"; 
+
+    QoZ::writefile("quant_inds.i32", conf.PASS_DATA.aux_quant_inds_ptr->data(), conf.num);
+
+
+    if( conf.N ==3 ) // only implement for 3D case
+    {  
+        std::shared_ptr<std::vector<T>> decompressed_copy = std::static_pointer_cast<std::vector<T>>(conf.PASS_DATA.processed_data_prt);
+        timer.start();
+        QoZ::SZPostprocessor<T, 3> postprocessor; 
+    // std::cout << "exe abs eb = " << conf.absErrorBound << "\n";
+        postprocessor.post_process(decompressed_copy->data(), conf);
+        double post_process_time = timer.stop();
+        printf("[Compress]post process time = %f\n", post_process_time);
+        QoZ::verify<T>(data, decompressed_copy->data(), conf.num);
+
+    //     QoZ::writefile("smoothed.dat", 
+    // std::static_pointer_cast<std::vector<T>>(conf.PASS_DATA.processed_data_prt)->data(), 
+    //             conf.num);
+    }
+
+
+    
+
+
+
+
 
     delete[]data;
     delete[]bytes;
@@ -236,6 +269,7 @@ int main(int argc, char *argv[]) {
     bool sz2mode = false;
     int qoz=-1;
     bool testLorenzo=false;
+    bool quant_pred = false;
 
     size_t r4 = 0;
     size_t r3 = 0;
@@ -298,6 +332,10 @@ int main(int argc, char *argv[]) {
                 break;
             case 'd':
                 dataType = SZ_DOUBLE;
+                break;
+            case 'P':
+                quant_pred = true;
+                
                 break;
 
             case 'I':
@@ -465,6 +503,10 @@ int main(int argc, char *argv[]) {
         conf.sampleBlockSize=sampleBlockSize;
     if (compression && conPath != nullptr) {
         conf.loadcfg(conPath);
+    }
+    if(quant_pred >0)
+    {
+        conf.quant_pred = quant_pred;
     }
 
 
