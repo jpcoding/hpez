@@ -2522,7 +2522,7 @@ private:
         size_t direction_y =(2+direction)%3;
         std::array<size_t, 3> local_index {0,0,0};
 
-        quant_pred = quant_pred_local && quant_pred_global && (cur_level <=1) && ((mode==-1)|| (mode ==0));
+        quant_pred = quant_pred_local && quant_pred_global && (cur_level <=2) && ((mode==-1)|| (mode ==0));
         
         for (size_t i = begins[0]; i < ends[0]; i += steps[0]) {
           local_index[0] = i;
@@ -12709,7 +12709,7 @@ pb,meta,coeffs,tuning);
 
         predict_error += block_interpolation_1d_crossblock_3d(
             data, begin_idx, end_idx, dims[0], steps, stride, interp_func, pb,
-            meta, cross_block, tuning, 0);
+            meta, cross_block, tuning, 1);
 
         begin_idx[dims[1]] = begin[dims[1]];
 
@@ -12731,7 +12731,7 @@ pb,meta,coeffs,tuning);
 
         predict_error += block_interpolation_1d_crossblock_3d(
             data, begin_idx, end_idx, dims[1], steps, stride, interp_func, pb,
-            meta, cross_block, tuning, 0);
+            meta, cross_block, tuning, 1);
 
         begin_idx[dims[2]] = begin[dims[2]];
 
