@@ -1017,6 +1017,8 @@ private:
         quantizer.insert_unpred(*(data + x));
         quant_inds.push_back(0);
       }
+      quant_index = quant_inds.size();
+
     }
 
     else if (N == 2) {
@@ -1032,9 +1034,9 @@ private:
               prediction_errors[x*dimension_offsets[0]+y]=0;
           }*/
           quant_inds.push_back(0);
-          quant_index++;
           // mark[x*conf.dims[1]+y]=true;
         }
+        quant_index = quant_inds.size();
       }
     } else if (N == 3) {
 
@@ -1061,10 +1063,11 @@ private:
             // if(tuning==0)
             //     mark[x*conf.dims[1]*conf.dims[2]+y*conf.dims[2]+z]=true;
             quant_inds.push_back(0);
-            quant_index++;
           }
         }
       }
+      quant_index = quant_inds.size();
+
     } else if (N == 4) {
 
       std::array<size_t, 4> anchor_strides = {maxStep, maxStep, maxStep,
@@ -1086,11 +1089,12 @@ private:
                                         y * dimension_offsets[1] +
                                         z * dimension_offsets[2] + w));
               quant_inds.push_back(0);
-              quant_index++;
             }
           }
         }
       }
+      quant_index = quant_inds.size();
+
     }
   }
 
