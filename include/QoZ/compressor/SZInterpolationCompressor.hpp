@@ -15,10 +15,12 @@
 #include "QoZ/utils/Sample.hpp"
 #include "QoZ/utils/Timer.hpp"
 #include <cmath>
+#include <cstddef>
 #include <cstring>
 #include <limits>
 #include <linux/limits.h>
 #include <memory>
+#define INT_MAX 2147483647
 namespace QoZ {
 template <class T, uint N, class Quantizer, class Encoder, class Lossless>
 class SZInterpolationCompressor
@@ -62,6 +64,8 @@ public:
 
     read(global_dimensions.data(), N, buffer_pos, remaining_length);
     read(blocksize, buffer_pos, remaining_length);
+    read(quant_pred_global,buffer_pos, remaining_length);
+    std::cout << "quant_pred_global: " << quant_pred_global << std::endl;
     /*
     read(interpolator_id, buffer_pos, remaining_length);
     read(direction_sequence_id, buffer_pos, remaining_length);
@@ -149,6 +153,8 @@ public:
     size_t meta_index = 0, coeff_idx = 0;
     for (uint level = interpolation_level;
          level > 0 && level <= interpolation_level; level--) {
+      
+      cur_level = level;
 
       if (alpha < 0) {
         if (level >= 3) {
@@ -261,6 +267,10 @@ public:
       }
     }
     quantizer.postdecompress_data();
+    writefile("quant_de.i32", aux_quant_inds_ptr->data(), num_elements);
+    writefile("quant_collector_de.i32", my_collector.data(), my_collector.size());
+    writefile("quant_processed_de.i32", processed_quant_inds.data(), num_elements);
+
     // std::cout<<quant_index<<std::endl;
 
     return decData;
@@ -282,6 +292,7 @@ public:
     std::copy_n(conf.dims.begin(), N, global_dimensions.begin());
     blocksize = conf.interpBlockSize;
     maxStep = conf.maxStep;
+    quant_pred_global = conf.quant_pred;
     /*
     interpolator_id = conf.interpMeta.interpAlgo;
     interp_paradigm=conf.interpMeta.interpParadigm;
@@ -338,6 +349,7 @@ public:
 
     if (!anchor) {
       quant_inds.push_back(quantizer.quantize_and_overwrite(*data, 0));
+      quant_index++;
     } else if (start_level == interpolation_level) {
       if (tuning) {
         conf.quant_bin_counts[start_level - 1] = quant_inds.size();
@@ -759,6 +771,19 @@ public:
           //    "<<(int)best_meta.cubicSplineType<<"
           //    "<<(int)best_meta.adjInterp<<std::endl;
           interp_metas.push_back(best_meta);
+          if(!tuning){
+          for(int i = 0; i < N; i++)
+          {
+            std::cout << start_idx[i] << " -- " << end_idx[i] << " ";
+          }
+          std::cout << std::endl;
+          printf("Level %d: Interpolation Algorithm: %d, Paradigm: %d, "
+                 "Direction: %d, Cubic Spline Type: %d, Adjacent Interpolation: "
+                 "%d\n",
+                 level, best_meta.interpAlgo, best_meta.interpParadigm,
+                 best_meta.interpDirection, best_meta.cubicSplineType,
+                 best_meta.adjInterp);
+          }
           // dimension_offsets=global_dimension_offsets;
           // global_dimensions=global_dimensions_temp;
           /*
@@ -772,6 +797,7 @@ public:
               interpolators[best_meta.interpAlgo], best_meta, stride, tuning,
               cross_block); //,cross_block,regressiveInterp);
         }
+        
         // if(N==2)
         // std::cout<<"a block fin"<<std::endl;
       }
@@ -832,6 +858,7 @@ public:
     uchar *buffer_pos = buffer;
     write(global_dimensions.data(), N, buffer_pos);
     write(blocksize, buffer_pos);
+    write(quant_pred_global,buffer_pos);
     /*
     write(interp_meta.interpAlgo, buffer_pos);
     write(interp_meta.interpParadigm, buffer_pos);
@@ -885,7 +912,9 @@ public:
     compressed_size += interp_compressed_size;
     //  std::cout<<quant_index<<std::endl;
     conf.PASS_DATA.aux_quant_inds_ptr = aux_quant_inds_ptr;
-    // { writefile("quant.i32", aux_quant_inds.data(), num_elements); }
+    writefile("quant_collector.i32", my_collector.data(), my_collector.size());
+    writefile("quant_processed.i32", processed_quant_inds.data(), num_elements);
+    writefile("compressed_data.dat", data, num_elements);
 
 
     return lossless_data;
@@ -962,6 +991,9 @@ private:
     // aux_quant_inds.resize(num_elements, 0);
     aux_quant_inds_ptr = std::make_shared<std::vector<int>>();
     aux_quant_inds_ptr->resize(num_elements, 0);
+    std::fill(aux_quant_inds_ptr->begin(), aux_quant_inds_ptr->end(), -INT_MAX);
+    processed_quant_inds = std::vector<int>(num_elements, 0);
+    my_order_collector.resize(num_elements, 0);
   }
 
   void build_grid(Config &conf, T *data, size_t maxStep, int tuning = 0) {
@@ -1000,6 +1032,7 @@ private:
               prediction_errors[x*dimension_offsets[0]+y]=0;
           }*/
           quant_inds.push_back(0);
+          quant_index++;
           // mark[x*conf.dims[1]+y]=true;
         }
       }
@@ -1028,6 +1061,7 @@ private:
             // if(tuning==0)
             //     mark[x*conf.dims[1]*conf.dims[2]+y*conf.dims[2]+z]=true;
             quant_inds.push_back(0);
+            quant_index++;
           }
         }
       }
@@ -1052,6 +1086,7 @@ private:
                                         y * dimension_offsets[1] +
                                         z * dimension_offsets[2] + w));
               quant_inds.push_back(0);
+              quant_index++;
             }
           }
         }
@@ -1122,6 +1157,7 @@ private:
     else
     */
     quant_inds.push_back(quantizer.quantize_and_overwrite(d, pred));
+    quant_index++;
     // return fabs(d-orig);
     (*aux_quant_inds_ptr)[idx] = quant_inds.back();
   }
@@ -1134,6 +1170,7 @@ private:
     if (mode == 1) {
       T orig = d;
       quant_inds.push_back(quantizer.quantize_and_overwrite(d, pred));
+      quant_index++;
       return (d - orig) * (d - orig);
 
     } else { //} if (mode==2){
@@ -1167,6 +1204,58 @@ private:
     // d = quantizer.recover(pred, quant_inds[quant_index++]);
     d = quantizer.recover(pred, quant_inds[idx]);
   };
+
+
+  inline int backward_compensate_pred(
+      size_t idx, size_t offset1, size_t offset2, T &pred,
+      const double compensation)
+  {
+    // return 0;
+    // compensation = ? * eb; 0.5, 1.1, 1.5, 2
+    //    0   1  2
+    // 0 *A  *B *C
+    // 1 *D  *E *F
+    // 2 *G  *H  X
+    // one layer is enough
+    int E = idx - offset1 - offset2;
+    int F = idx - offset1;
+    int H = idx - offset2;
+    if((*aux_quant_inds_ptr)[E] == -INT_MAX ||
+       (*aux_quant_inds_ptr)[F] == -INT_MAX ||
+       (*aux_quant_inds_ptr)[H] == -INT_MAX)
+    {
+      std::cout << "Error: quantization index found here" << std::endl;
+      printf("E: %d, F: %d, H: %d\n", (*aux_quant_inds_ptr)[E], (*aux_quant_inds_ptr)[F], (*aux_quant_inds_ptr)[H]);
+      printf("idx = %ld, x = %ld, y = %ld, z = %ld \n", idx, 
+          idx/(global_dimensions[1]*global_dimensions[2]),
+          idx/(global_dimensions[2])%(global_dimensions[1]), 
+          idx%(global_dimensions[2]) );
+      
+
+      return 0;
+    }
+    if ((*aux_quant_inds_ptr)[E] == 0 || (*aux_quant_inds_ptr)[F] == 0 ||
+        (*aux_quant_inds_ptr)[H] == 0) {
+      return 0;
+    }
+    int quant_E = (*aux_quant_inds_ptr)[E] - quantizer.get_radius();
+    int quant_F = (*aux_quant_inds_ptr)[F] - quantizer.get_radius();
+    int quant_H = (*aux_quant_inds_ptr)[H] - quantizer.get_radius();
+
+    int quant_compensate = 0;
+    if (quant_H > 0 && quant_F > 0) {
+      quant_compensate = (quant_H + quant_F - quant_E);
+      pred += quant_compensate * compensation;
+    }
+    else if (quant_H < 0 && quant_F < 0) {
+      quant_compensate = (quant_H + quant_F - quant_E);
+      pred+= quant_compensate * compensation;
+    }
+    else {
+      return 0;
+    }
+    return quant_compensate;
+  }
 
   inline double quantize_integrated(size_t idx, T &d, T pred, int mode = 0) {
     /*
@@ -2278,7 +2367,7 @@ private:
       const std::string &interp_func, const PredictorBehavior pb,
       const QoZ::Interp_Meta &meta, int cross_block = 1,
       int tuning =
-          0) { // cross block: 0: no cross 1: only front-cross 2: all cross
+          0, bool quant_pred_local = false) { // cross block: 0: no cross 1: only front-cross 2: all cross
 
     for (size_t i = 0; i < N; i++) {
       if (end_idx[i] < begin_idx[i])
@@ -2288,6 +2377,8 @@ private:
     size_t math_begin_idx = begin_idx[direction],
            math_end_idx = end_idx[direction];
     size_t n = (math_end_idx - math_begin_idx) / math_stride + 1;
+
+
 
     /*
     if(n==2 and begin_idx[1]==0 and begin_idx[2]==0){
@@ -2420,20 +2511,61 @@ private:
         begins[direction] = i_start;
         ends[direction] = (n >= 3) ? (n - 3) : 0;
         steps[direction] = 2;
+        bool quant_pred = false;
+        int quant_compensate = 0;
 
+        size_t direction_x =(1+direction)%3;
+        size_t direction_y =(2+direction)%3;
+        std::array<size_t, 3> local_index {0,0,0};
+
+        quant_pred = quant_pred_local && quant_pred_global && (cur_level <=1) && ((mode==-1)|| (mode ==0));
+        
         for (size_t i = begins[0]; i < ends[0]; i += steps[0]) {
+          local_index[0] = i;
           for (size_t j = begins[1]; j < ends[1]; j += steps[1]) {
+            local_index[1] = j;
             for (size_t k = begins[2]; k < ends[2]; k += steps[2]) {
+              local_index[2] = k;
               // if(n==2 and begin_idx[1]==0 and begin_idx[2]==0)
               //  std::cout<<i<<" "<<j<<" "<<k<<std::endl;
 
               d = data + begin + i * strides[0] + j * strides[1] +
                   k * strides[2];
-              predict_error += quantize_integrated(
-                  quant_idx++, *d,
-                  interp_cubic(meta.cubicSplineType, *(d - stride3x),
-                               *(d - stride), *(d + stride), *(d + stride3x)),
-                  mode);
+              
+              T pred = interp_cubic(meta.cubicSplineType, *(d - stride3x),
+                               *(d - stride), *(d + stride), *(d + stride3x));
+              if( quant_pred &&  begin_idx[direction_x] + local_index[direction_x]!=0 
+                &&  begin_idx[direction_y] + local_index[direction_y] !=0){
+
+                  quant_compensate = backward_compensate_pred(d-data, dimension_offsets[direction_x]*steps[direction_x], 
+                 dimension_offsets[direction_y]*steps[direction_y], pred, 2.0*quantizer.get_eb());
+
+              }
+              predict_error += quantize_integrated(quant_idx++, *d,pred, mode);
+
+              
+              if(mode ==0) assert(quant_inds.size() == quant_idx-1);
+
+              if(quant_pred &&  begin_idx[direction_x] + local_index[direction_x]!=0 
+                &&  begin_idx[direction_y] + local_index[direction_y] !=0 ){
+                if(quant_inds[quant_idx-1] == 0)
+                {
+                  (*aux_quant_inds_ptr)[d-orig_data_start] = 0;
+                }
+                else {
+                  (*aux_quant_inds_ptr)[d-orig_data_start] = quant_inds[quant_idx-1] + quant_compensate;
+                }
+              }
+              if(mode == -1 || mode ==0 ) my_collector.push_back((int)quant_pred);
+              if(mode ==0) assert(quant_inds.size() == quant_idx-1);
+              if(mode == -1 || mode ==0 ) processed_quant_inds[d-data] =quant_inds[quant_idx-1]; 
+
+              
+              // predict_error += quantize_integrated(
+              //     quant_idx++, *d,
+              //     interp_cubic(meta.cubicSplineType, *(d - stride3x),
+              //                  *(d - stride), *(d + stride), *(d + stride3x)),
+              //     mode);
             }
           }
         }
@@ -2546,18 +2678,45 @@ private:
         begins[direction] = i_start;
         ends[direction] = (n >= 3) ? (n - 3) : 0;
         steps[direction] = 4;
+        size_t direction_x = (1+direction)%3;
+        size_t direction_y = (2+direction)%3;
+        bool quant_pred = false;
+        int quant_compensate = 0;
+        std::array<int,3> local_index {0,0,0};
+        quant_pred = quant_pred_global && quant_pred_local && (cur_level <=1) &&(!tuning);
         for (size_t i = begins[0]; i < ends[0]; i += steps[0]) {
+          local_index[0] = i;
           for (size_t j = begins[1]; j < ends[1]; j += steps[1]) {
+            local_index[1] = j;
             for (size_t k = begins[2]; k < ends[2]; k += steps[2]) {
+              local_index[2] = k;
 
               d = data + begin + i * strides[0] + j * strides[1] +
                   k * strides[2];
-
-              predict_error += quantize_integrated(
-                  quant_idx++, *d,
-                  interp_cubic(meta.cubicSplineType, *(d - stride3x),
-                               *(d - stride), *(d + stride), *(d + stride3x)),
-                  mode);
+              T pred = interp_cubic(meta.cubicSplineType, *(d - stride3x),
+                               *(d - stride), *(d + stride), *(d + stride3x));
+              if( quant_pred &&  begin_idx[direction_x] + local_index[direction_x]!=0 
+                &&  begin_idx[direction_y] + local_index[direction_y] !=0){
+                  quant_compensate = backward_compensate_pred(d-data, dimension_offsets[direction_x]*steps[direction_x], 
+                 dimension_offsets[direction_y]*steps[direction_y], pred, 2.0*quantizer.get_eb());
+              }
+              predict_error += quantize_integrated(quant_idx++, *d,pred, mode);
+              if( quant_pred &&  begin_idx[direction_x] + local_index[direction_x]!=0 
+                &&  begin_idx[direction_y] + local_index[direction_y] !=0){
+                if(quant_inds[quant_idx-1] == 0)
+                {
+                  (*aux_quant_inds_ptr)[d-orig_data_start] = 0;
+                }
+                else {
+                  (*aux_quant_inds_ptr)[d-orig_data_start] = quant_inds[quant_idx-1] + quant_compensate;
+                }
+              }
+              if(!tuning ) processed_quant_inds[d-data] =quant_inds[quant_idx-1];
+              // predict_error += quantize_integrated(
+              //     quant_idx++, *d,
+              //     interp_cubic(meta.cubicSplineType, *(d - stride3x),
+              //                  *(d - stride), *(d + stride), *(d + stride3x)),
+              //     mode);
             }
           }
         }
@@ -2661,6 +2820,11 @@ private:
 
               d = data + begin + i * strides[0] + j * strides[1] +
                   k * strides[2];
+              T pred = interp_cubic_adj(meta.cubicSplineType, *(d - stride3x),
+                                   *(d - stride2x), *(d - stride),
+                                   *(d + stride), *(d + stride2x),
+                                   *(d + stride3x)); 
+              
 
               predict_error += quantize_integrated(
                   quant_idx++, *d,
@@ -12541,7 +12705,7 @@ pb,meta,coeffs,tuning);
 
         predict_error += block_interpolation_1d_crossblock_3d(
             data, begin_idx, end_idx, dims[0], steps, stride, interp_func, pb,
-            meta, cross_block, tuning);
+            meta, cross_block, tuning, 0);
 
         begin_idx[dims[1]] = begin[dims[1]];
 
@@ -12563,7 +12727,7 @@ pb,meta,coeffs,tuning);
 
         predict_error += block_interpolation_1d_crossblock_3d(
             data, begin_idx, end_idx, dims[1], steps, stride, interp_func, pb,
-            meta, cross_block, tuning);
+            meta, cross_block, tuning, 0);
 
         begin_idx[dims[2]] = begin[dims[2]];
 
@@ -12584,7 +12748,7 @@ pb,meta,coeffs,tuning);
 
         predict_error += block_interpolation_1d_crossblock_3d(
             data, begin_idx, end_idx, dims[2], steps, stride, interp_func, pb,
-            meta, cross_block, tuning);
+            meta, cross_block, tuning, 1);
 
         /*
                     std::array<size_t, N> begin_idx=begin,end_idx=begin;
@@ -13104,7 +13268,7 @@ pb,meta,coeffs,tuning);
 
         predict_error += block_interpolation_1d_crossblock_3d(
             data, begin_idx, end_idx, dims[1], steps, stride, interp_func, pb,
-            meta, cross_block, tuning);
+            meta, cross_block, tuning,1);
 
         //  std::cout<<"1d1"<<std::endl;
 
@@ -13127,7 +13291,7 @@ pb,meta,coeffs,tuning);
        */
         predict_error += block_interpolation_1d_crossblock_3d(
             data, begin_idx, end_idx, dims[2], steps, stride, interp_func, pb,
-            meta, cross_block, tuning);
+            meta, cross_block, tuning,1);
         //    std::cout<<"1d2"<<std::endl;
 
         /*
@@ -13442,6 +13606,11 @@ pb,meta,coeffs,tuning);
   // std::vector<int> aux_quant_inds;
   std::shared_ptr<std::vector<int>> aux_quant_inds_ptr;
   T *orig_data_start;
+  bool quant_pred_global = false;
+  std::vector<int> processed_quant_inds;
+
+  std::vector<int> my_collector;
+  std::vector<int> my_order_collector; 
 };
 
 }; // namespace QoZ
