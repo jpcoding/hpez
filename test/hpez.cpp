@@ -169,8 +169,9 @@ void compress(char *inPath, char *cmpPath, QoZ::Config &conf) {//conf changed to
 
     std::cout << "conf.N = " << conf.N << "\n";
     std::cout << "conf abs eb " << conf.absErrorBound << "\n"; 
-
-    QoZ::writefile("quant_inds.i32", conf.PASS_DATA.aux_quant_inds_ptr->data(), conf.num);
+    
+    if(conf.PASS_DATA.aux_quant_inds_ptr.get())
+        QoZ::writefile("quant_inds.i32", conf.PASS_DATA.aux_quant_inds_ptr->data(), conf.PASS_DATA.aux_quant_inds_ptr->size());
 
 
     if(  conf.N ==3 ) // only implement for 3D case

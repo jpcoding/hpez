@@ -611,7 +611,7 @@ double Tuning(QoZ::Config &conf, T *data){
         }
 
         if(conf.QoZ>=2){
-            conf.testLorenzo=1;
+            conf.testLorenzo=0;
             conf.multiDimInterp=1;
             conf.naturalSpline=1;
             conf.fullAdjacentInterp=1;

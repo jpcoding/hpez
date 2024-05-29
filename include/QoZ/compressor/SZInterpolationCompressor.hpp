@@ -14,6 +14,7 @@
 #include "QoZ/utils/MemoryUtil.hpp"
 #include "QoZ/utils/Sample.hpp"
 #include "QoZ/utils/Timer.hpp"
+#include <cassert>
 #include <cmath>
 #include <cstddef>
 #include <cstring>
@@ -270,6 +271,8 @@ public:
     writefile("quant_de.i32", aux_quant_inds_ptr->data(), num_elements);
     writefile("quant_collector_de.i32", my_collector.data(), my_collector.size());
     writefile("quant_processed_de.i32", processed_quant_inds.data(), num_elements);
+    writefile("quant_inds_de.i32", quant_inds.data(), num_elements);  
+
 
     // std::cout<<quant_index<<std::endl;
 
@@ -771,7 +774,7 @@ public:
           //    "<<(int)best_meta.cubicSplineType<<"
           //    "<<(int)best_meta.adjInterp<<std::endl;
           interp_metas.push_back(best_meta);
-          if(!tuning){
+          if(0 && !tuning){
           for(int i = 0; i < N; i++)
           {
             std::cout << start_idx[i] << " -- " << end_idx[i] << " ";
@@ -792,6 +795,7 @@ public:
           PB_predict_overwrite, interpolators[best_meta.interpAlgo],best_meta,
           stride,tuning,cross_block,1,coeffs);//,cross_block,regressiveInterp);
           else*/
+          quant_index = quant_inds.size();
           predict_error += block_interpolation(
               data, start_idx, end_idx, PB_predict_overwrite,
               interpolators[best_meta.interpAlgo], best_meta, stride, tuning,
@@ -915,6 +919,9 @@ public:
     writefile("quant_collector.i32", my_collector.data(), my_collector.size());
     writefile("quant_processed.i32", processed_quant_inds.data(), num_elements);
     writefile("compressed_data.dat", data, num_elements);
+    writefile("order_collector.i32", my_order_collector.data(), my_order_collector.size());
+    writefile("quant_inds_out.i32", quant_inds.data(), num_elements);  
+
 
 
     return lossless_data;
@@ -992,7 +999,7 @@ private:
     aux_quant_inds_ptr = std::make_shared<std::vector<int>>();
     aux_quant_inds_ptr->resize(num_elements, 0);
     std::fill(aux_quant_inds_ptr->begin(), aux_quant_inds_ptr->end(), -INT_MAX);
-    processed_quant_inds = std::vector<int>(num_elements, 0);
+    processed_quant_inds = std::vector<int>(num_elements, -INT_MAX);
     my_order_collector.resize(num_elements, 0);
   }
 
@@ -1233,7 +1240,11 @@ private:
       printf("idx = %ld, x = %ld, y = %ld, z = %ld \n", idx, 
           idx/(global_dimensions[1]*global_dimensions[2]),
           idx/(global_dimensions[2])%(global_dimensions[1]), 
-          idx%(global_dimensions[2]) );
+          idx%(global_dimensions[2]));
+      my_order_collector[idx] = 1;
+      // my_order_collector[E] = 2;
+      // my_order_collector[F] = 2;
+      // my_order_collector[H] = 2;
       
 
       return 0;
@@ -2560,7 +2571,7 @@ private:
                   (*aux_quant_inds_ptr)[d-orig_data_start] = quant_inds[quant_idx-1] + quant_compensate;
                 }
               }
-              if(mode == -1 || mode ==0 ) my_collector.push_back((int)quant_pred);
+              if(mode == -1 || mode ==0 ) my_collector.push_back(quant_idx);
               if(mode ==0) assert(quant_inds.size() == quant_idx-1);
               if(mode == -1 || mode ==0 ) processed_quant_inds[d-data] =quant_inds[quant_idx-1]; 
 
@@ -2687,7 +2698,7 @@ private:
         bool quant_pred = false;
         int quant_compensate = 0;
         std::array<int,3> local_index {0,0,0};
-        quant_pred = quant_pred_global && quant_pred_local && (cur_level <=1) &&(!tuning);
+        quant_pred = quant_pred_global && quant_pred_local && (cur_level <=2) &&((mode ==-1)||(mode ==0));
         for (size_t i = begins[0]; i < ends[0]; i += steps[0]) {
           local_index[0] = i;
           for (size_t j = begins[1]; j < ends[1]; j += steps[1]) {
@@ -2701,8 +2712,8 @@ private:
                                *(d - stride), *(d + stride), *(d + stride3x));
               if( quant_pred &&  begin_idx[direction_x] + local_index[direction_x]!=0 
                 &&  begin_idx[direction_y] + local_index[direction_y] !=0){
-                  quant_compensate = backward_compensate_pred(d-data, dimension_offsets[direction_x]*steps[direction_x], 
-                 dimension_offsets[direction_y]*steps[direction_y], pred, 2.0*quantizer.get_eb());
+                  quant_compensate = backward_compensate_pred(d-data, strides[direction_x]*steps[direction_x], 
+                 strides[direction_y]*steps[direction_y], pred, 2.0*quantizer.get_eb());
               }
               predict_error += quantize_integrated(quant_idx++, *d,pred, mode);
               if( quant_pred &&  begin_idx[direction_x] + local_index[direction_x]!=0 
@@ -2715,7 +2726,10 @@ private:
                   (*aux_quant_inds_ptr)[d-orig_data_start] = quant_inds[quant_idx-1] + quant_compensate;
                 }
               }
-              if(!tuning ) processed_quant_inds[d-data] =quant_inds[quant_idx-1];
+              if(mode == -1 || mode ==0 ) processed_quant_inds[d-data] =quant_inds[quant_idx-1];
+              if(mode ==0 ) assert(quant_inds.size() == quant_idx-1);
+              if(mode == -1 || mode ==0 ) my_collector.push_back(quant_idx);
+
               // predict_error += quantize_integrated(
               //     quant_idx++, *d,
               //     interp_cubic(meta.cubicSplineType, *(d - stride3x),
@@ -2819,24 +2833,48 @@ private:
         begins[direction] = 3;
         ends[direction] = (n >= 3) ? (n - 3) : 0;
         for (size_t i = begins[0]; i < ends[0]; i += steps[0]) {
+          local_index[0]= i;
           for (size_t j = begins[1]; j < ends[1]; j += steps[1]) {
+            local_index[1] = j;
             for (size_t k = begins[2]; k < ends[2]; k += steps[2]) {
-
+              local_index[2] = k;
               d = data + begin + i * strides[0] + j * strides[1] +
                   k * strides[2];
               T pred = interp_cubic_adj(meta.cubicSplineType, *(d - stride3x),
                                    *(d - stride2x), *(d - stride),
                                    *(d + stride), *(d + stride2x),
                                    *(d + stride3x)); 
+
+              if( quant_pred &&  begin_idx[direction_x] + local_index[direction_x]!=0 
+                &&  begin_idx[direction_y] + local_index[direction_y] !=0){
+                  quant_compensate = backward_compensate_pred(d-data, strides[direction_x]*steps[direction_x], 
+                 strides[direction_y]*steps[direction_y], pred, 2.0*quantizer.get_eb());
+              }
+              predict_error += quantize_integrated(quant_idx++, *d,pred, mode);
+
+              if( quant_pred &&  begin_idx[direction_x] + local_index[direction_x]!=0 
+                &&  begin_idx[direction_y] + local_index[direction_y] !=0){
+                if(quant_inds[quant_idx-1] == 0)
+                {
+                  (*aux_quant_inds_ptr)[d-orig_data_start] = 0;
+                }
+                else {
+                  (*aux_quant_inds_ptr)[d-orig_data_start] = quant_inds[quant_idx-1] + quant_compensate;
+                }
+              }
+              if(mode == -1 || mode ==0 ) processed_quant_inds[d-data] =quant_inds[quant_idx-1];
+              if(mode ==0 ) assert(quant_inds.size() == quant_idx-1);   
+              if(mode == -1 || mode ==0 ) my_collector.push_back(quant_idx);
+                                
               
 
-              predict_error += quantize_integrated(
-                  quant_idx++, *d,
-                  interp_cubic_adj(meta.cubicSplineType, *(d - stride3x),
-                                   *(d - stride2x), *(d - stride),
-                                   *(d + stride), *(d + stride2x),
-                                   *(d + stride3x)),
-                  mode);
+              // predict_error += quantize_integrated(
+              //     quant_idx++, *d,
+              //     interp_cubic_adj(meta.cubicSplineType, *(d - stride3x),
+              //                      *(d - stride2x), *(d - stride),
+              //                      *(d + stride), *(d + stride2x),
+              //                      *(d + stride3x)),
+              //     mode);
               // predict_error+=quantize_integrated(quant_idx++, *d,
               //            interp_cubic_3(*(d - stride2x), *(d - stride), *(d +
               //            stride), *(d+stride2x)),mode);
