@@ -13115,7 +13115,7 @@ pb,meta,coeffs,tuning);
 
         predict_error += block_interpolation_1d_crossblock_3d(
             data, begin_idx, end_idx, dims[0], steps, stride, interp_func, pb,
-            meta, cross_block, tuning);
+            meta, cross_block, tuning,1);
 
         // std::cout<<"1d1 fin"<<std::endl;
         begin_idx[dims[1]] = begin[dims[1]];
@@ -13127,7 +13127,7 @@ pb,meta,coeffs,tuning);
 
         predict_error += block_interpolation_1d_crossblock_3d(
             data, begin_idx, end_idx, dims[1], steps, stride, interp_func, pb,
-            meta, cross_block, tuning);
+            meta, cross_block, tuning,1);
         // std::cout<<"1d2 fin"<<std::endl;
         begin_idx[dims[2]] = begin[dims[2]];
 
@@ -13138,7 +13138,7 @@ pb,meta,coeffs,tuning);
 
         predict_error += block_interpolation_1d_crossblock_3d(
             data, begin_idx, end_idx, dims[2], steps, stride, interp_func, pb,
-            meta, cross_block, tuning);
+            meta, cross_block, tuning,1);
         // std::cout<<"1d3 fin"<<std::endl;
         /*
         std::array<size_t, N> begin_idx=begin,end_idx=begin;
