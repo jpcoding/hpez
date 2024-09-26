@@ -167,28 +167,28 @@ void compress(char *inPath, char *cmpPath, QoZ::Config &conf) {//conf changed to
 
     // smooth process is here;
 
-    std::cout << "conf.N = " << conf.N << "\n";
-    std::cout << "conf abs eb " << conf.absErrorBound << "\n"; 
+    // std::cout << "conf.N = " << conf.N << "\n";
+    // std::cout << "conf abs eb " << conf.absErrorBound << "\n"; 
     
-    if(conf.PASS_DATA.aux_quant_inds_ptr.get())
-        QoZ::writefile("quant_inds.i32", conf.PASS_DATA.aux_quant_inds_ptr->data(), conf.PASS_DATA.aux_quant_inds_ptr->size());
+    // if(conf.PASS_DATA.aux_quant_inds_ptr.get())
+    //     QoZ::writefile("quant_inds.i32", conf.PASS_DATA.aux_quant_inds_ptr->data(), conf.PASS_DATA.aux_quant_inds_ptr->size());
 
 
-    if(  conf.N ==3 ) // only implement for 3D case
-    {  
-        std::shared_ptr<std::vector<T>> decompressed_copy = std::static_pointer_cast<std::vector<T>>(conf.PASS_DATA.processed_data_prt);
-    //     timer.start();
-    //     QoZ::SZPostprocessor<T, 3> postprocessor; 
-    // // std::cout << "exe abs eb = " << conf.absErrorBound << "\n";
-    //     postprocessor.post_process(decompressed_copy->data(), conf);
-    //     double post_process_time = timer.stop();
-    //     printf("[Compress]post process time = %f\n", post_process_time);
-        QoZ::verify<T>(data, decompressed_copy->data(), conf.num);
+    // if(  conf.N ==3 ) // only implement for 3D case
+    // {  
+    //     std::shared_ptr<std::vector<T>> decompressed_copy = std::static_pointer_cast<std::vector<T>>(conf.PASS_DATA.processed_data_prt);
+    // //     timer.start();
+    // //     QoZ::SZPostprocessor<T, 3> postprocessor; 
+    // // // std::cout << "exe abs eb = " << conf.absErrorBound << "\n";
+    // //     postprocessor.post_process(decompressed_copy->data(), conf);
+    // //     double post_process_time = timer.stop();
+    // //     printf("[Compress]post process time = %f\n", post_process_time);
+    //     QoZ::verify<T>(data, decompressed_copy->data(), conf.num);
 
-    //     QoZ::writefile("smoothed.dat", 
-    // std::static_pointer_cast<std::vector<T>>(conf.PASS_DATA.processed_data_prt)->data(), 
-    //             conf.num);
-    }
+    // //     QoZ::writefile("smoothed.dat", 
+    // // std::static_pointer_cast<std::vector<T>>(conf.PASS_DATA.processed_data_prt)->data(), 
+    // //             conf.num);
+    // }
 
 
     
