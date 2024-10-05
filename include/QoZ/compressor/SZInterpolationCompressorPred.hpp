@@ -1358,12 +1358,7 @@ private:
     if (mode == -1) { // recover
       // d = quantizer.recover(pred, quant_inds[quant_index++]);
       size_t global_idx = &d - orig_data_start;
-      (*aux_quant_inds_ptr)[global_idx] = quant_inds[idx];
-      int  quant_compensate = 0;
-      if(quant_inds[idx] != 0)
-      {
-        quant_compensate = backward_compensate_pred_int(global_idx, offset1, offset2);
-      }
+      int quant_compensate = backward_compensate_pred_int(global_idx, offset1, offset2);
       quant_inds[idx] += quant_compensate;
       d = quantizer.recover(pred, quant_inds[idx]);
       (*aux_quant_inds_ptr)[global_idx] = quant_inds[idx];
@@ -1372,8 +1367,6 @@ private:
       size_t global_idx = &d - orig_data_start;
       quant_inds.push_back(quantizer.quantize_and_overwrite(d, pred));
       (*aux_quant_inds_ptr)[global_idx] = quant_inds.back();
-      if(quant_inds.back() == 0)
-        return 0;
       int quante_compensate = backward_compensate_pred_int(global_idx, offset1, offset2);
       quant_inds.back() -= quante_compensate;
       #ifdef SZ_ANALYSIS
@@ -2575,7 +2568,7 @@ private:
         size_t offset_x = dimension_offsets[direction_x]*steps[direction_x];
         size_t offset_y = dimension_offsets[direction_y]*steps[direction_y];
 
-        quant_pred = quant_pred_local && quant_pred_global && (cur_level <=quant_pred_start_level)&& ((mode==-1)|| (mode ==0));
+        quant_pred = quant_pred_local && quant_pred_global && (cur_level <=quant_pred_start_level);
         
         for (size_t i = begins[0]; i < ends[0]; i += steps[0]) {
           local_index[0] = i;
