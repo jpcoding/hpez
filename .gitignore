@@ -9,3 +9,4 @@ build
 .cache
 build*
 debug
+analysis*

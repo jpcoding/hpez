@@ -486,6 +486,7 @@ namespace QoZ {
         bool quadInterp=false;
 
         bool quant_pred = false;
+        int quant_pred_start_level = 2;
         //bool fineGrainTuning=false;
         //bool profilingFix=true;//only for test
 

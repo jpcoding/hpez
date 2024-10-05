@@ -271,6 +271,7 @@ int main(int argc, char *argv[]) {
     int qoz=-1;
     bool testLorenzo=false;
     bool quant_pred = false;
+    int quant_pred_start_level = 0;
 
     size_t r4 = 0;
     size_t r3 = 0;
@@ -334,9 +335,13 @@ int main(int argc, char *argv[]) {
             case 'd':
                 dataType = SZ_DOUBLE;
                 break;
-            case 'P':
+            case 'Q':
                 quant_pred = true;
                 
+                break;
+            case 'L':
+                if (++i == argc || sscanf(argv[i], "%d", &quant_pred_start_level) != 1)
+                    usage();
                 break;
 
             case 'I':
@@ -508,6 +513,7 @@ int main(int argc, char *argv[]) {
     if(quant_pred >0)
     {
         conf.quant_pred = quant_pred;
+        conf.quant_pred_start_level = quant_pred_start_level;
     }
 
 

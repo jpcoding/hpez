@@ -8,6 +8,12 @@ include(CTest)
 option(BUILD_SHARED_LIBS "build shared libraries by default" ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+option(SZ_ANALYSIS "Enable SZ analysis" OFF)
+if(SZ_ANALYSIS)
+  add_compile_definitions(-DSZ_ANALYSIS)
+endif()
+
+
 set(default_build_type "Release")
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   message(STATUS "No build type was set. Setting build type to ${default_build_type}.")
